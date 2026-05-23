@@ -30,8 +30,9 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   beforeLoad: async () => {
+    if (typeof window === "undefined") return;
     await claimAdminIfNone().catch(() => {});
-    const { admin } = await isCurrentUserAdmin();
+    const { admin } = await isCurrentUserAdmin().catch(() => ({ admin: false }));
     if (!admin) throw redirect({ to: "/" });
   },
   component: AdminPage,
