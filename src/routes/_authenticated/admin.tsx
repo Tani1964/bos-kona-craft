@@ -31,9 +31,19 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 export const Route = createFileRoute("/_authenticated/admin")({
   beforeLoad: async () => {
     if (typeof window === "undefined") return;
+    const { data: authData, error: authError } = await supabase.auth.getUser();
+    if (authError || !authData.user) throw redirect({ to: "/login" });
     await claimAdminIfNone().catch(() => {});
-    const { admin } = await isCurrentUserAdmin().catch(() => ({ admin: false }));
-    if (!admin) throw redirect({ to: "/" });
+    let isAdmin = false;
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      const { admin } = await isCurrentUserAdmin().catch(() => ({ admin: false }));
+      if (admin) {
+        isAdmin = true;
+        break;
+      }
+      await new Promise((resolve) => window.setTimeout(resolve, 250));
+    }
+    if (!isAdmin) throw redirect({ to: "/login" });
   },
   component: AdminPage,
   head: () => ({ meta: [{ title: "Admin — Bos' Kọ́nà" }] }),
