@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,7 +10,6 @@ export const Route = createFileRoute("/login")({
 });
 
 function LoginPage() {
-  const navigate = useNavigate();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -31,7 +30,9 @@ function LoginPage() {
       const { error } = await fn;
       if (error) throw error;
       toast.success(mode === "signin" ? "Welcome back" : "Account created — check your email");
-      if (mode === "signin") navigate({ to: "/admin" });
+      if (mode === "signin") {
+        window.location.assign("/admin");
+      }
     } catch (err: any) {
       toast.error(err?.message ?? "Authentication failed");
     } finally {
