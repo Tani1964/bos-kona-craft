@@ -151,49 +151,22 @@ function Index() {
             Passport Modules
           </motion.h2>
 
-          <ModuleCard
-            index={0}
-            to="/timeline"
-            title="Ownership Timeline"
-            subtitle="30 Wears Logged"
-            thumbnail={
-              <div className="h-full w-full bg-gradient-to-br from-leather via-terracotta to-stone-900" />
-            }
-            icon={<Clock className="h-5 w-5 text-bronze" />}
-          />
-          <ModuleCard
-            index={1}
-            to="/provenance"
-            title="Craft Provenance"
-            subtitle="Material & Design Journey"
-            icon={<Hammer className="h-5 w-5 text-bronze" />}
-          />
-          <ModuleCard
-            index={2}
-            to="/documentary"
-            title="Documentary: Origin"
-            subtitle="12 min · Bespoke Atelier"
-            video
-            thumbnail={
-              <div className="h-full w-full bg-[radial-gradient(circle_at_30%_30%,oklch(0.45_0.1_50),oklch(0.12_0.01_50))]" />
-            }
-          />
-          <ModuleCard
-            index={3}
-            title="Documentary: Transformation"
-            subtitle="Unlocks at 50 Wears"
-            locked
-            thumbnail={
-              <div className="h-full w-full bg-[radial-gradient(circle_at_70%_60%,oklch(0.32_0.08_30),oklch(0.1_0.01_30))]" />
-            }
-          />
-          <ModuleCard
-            index={4}
-            title="Archive Collection Access"
-            subtitle="Unlocks at Venerated Stage (KFI < 40)"
-            locked
-            icon={<Archive className="h-5 w-5 text-bronze" />}
-          />
+          {feed.map((m, i) => {
+            const Icon = m.icon;
+            return (
+              <ModuleCard
+                key={m.id}
+                index={i}
+                to={m.to}
+                title={m.title}
+                subtitle={m.resolvedSubtitle}
+                locked={m.locked}
+                video={m.video}
+                thumbnail={m.thumbnail ? <Thumb style={m.thumbnail} /> : undefined}
+                icon={<Icon className="h-5 w-5 text-bronze" />}
+              />
+            );
+          })}
         </section>
       </main>
 
