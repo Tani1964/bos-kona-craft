@@ -7,14 +7,46 @@ import {
   Footprints,
   Shield,
   Sparkles,
-  Clock,
-  Hammer,
-  Film,
-  Archive,
 } from "lucide-react";
 import { KfiRing } from "@/components/passport/KfiRing";
 import { ModuleCard } from "@/components/passport/ModuleCard";
 import { CareSheet } from "@/components/passport/CareSheet";
+import { resolveFeed, type ThumbnailStyle } from "@/lib/passport/ecosystem";
+import {
+  computeKfi,
+  deriveStage,
+  deriveRecommendation,
+  estimateLifespanYears,
+  type AssetTelemetry,
+} from "@/lib/passport/state-engine";
+
+// Module 14/15: telemetry feeds the State Engine; Ecosystem resolves the feed.
+const TELEMETRY: AssetTelemetry = {
+  wears: 30,
+  careEntries: 4,
+  nfcScans: 7,
+  ageDays: 210,
+  repairs: 0,
+};
+
+function Thumb({ style }: { style: ThumbnailStyle }) {
+  if (style.kind === "gradient") {
+    return (
+      <div
+        className={`h-full w-full bg-gradient-to-br ${style.from} ${style.via ?? ""} ${style.to}`}
+      />
+    );
+  }
+  if (style.kind === "radial") {
+    return (
+      <div
+        className="h-full w-full"
+        style={{ background: `radial-gradient(${style.spec.replace(/_/g, " ")})` }}
+      />
+    );
+  }
+  return null;
+}
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -40,6 +72,11 @@ function fade(delay = 0) {
 
 function Index() {
   const [careOpen, setCareOpen] = useState(false);
+  const kfi = computeKfi(TELEMETRY);
+  const stage = deriveStage(kfi.score);
+  const lifespan = estimateLifespanYears(TELEMETRY);
+  const recommendation = deriveRecommendation(TELEMETRY);
+  const feed = resolveFeed(TELEMETRY);
   return (
     <div className="min-h-screen bg-stone-950 text-foreground grain">
       <main className="relative mx-auto h-screen max-w-md overflow-y-auto overflow-x-hidden pb-32">
@@ -90,15 +127,15 @@ function Index() {
 
         {/* ── Intelligence Engine ──────────────────────────── */}
         <section className="mt-8 px-5">
-          <KfiRing score={92.6} stage="Breaking In" />
+          <KfiRing score={kfi.score} stage={stage} />
 
           <motion.div
             {...fade(0.6)}
             className="mt-6 grid grid-cols-3 gap-2 rounded-xl border border-white/10 bg-white/5 p-3"
           >
-            <Stat label="Wear" value="-15.0" tone="bad" />
-            <Stat label="Age" value="-2.4" tone="bad" />
-            <Stat label="Care" value="+10.0" tone="good" />
+            <Stat label="Wear" value={kfi.wearImpact.toFixed(1)} tone="bad" />
+            <Stat label="Age" value={kfi.ageImpact.toFixed(1)} tone="bad" />
+            <Stat label="Care" value={`+${kfi.careImpact.toFixed(1)}`} tone="good" />
           </motion.div>
 
           <motion.p
@@ -106,7 +143,7 @@ function Index() {
             className="mt-4 text-center font-mono text-[10.5px] uppercase tracking-[0.2em] text-muted-foreground"
           >
             Estimated lifespan at current wear rate:{" "}
-            <span className="text-bronze">4.2 Years</span>
+            <span className="text-bronze">{lifespan} Years</span>
           </motion.p>
         </section>
 
@@ -119,49 +156,22 @@ function Index() {
             Passport Modules
           </motion.h2>
 
-          <ModuleCard
-            index={0}
-            to="/timeline"
-            title="Ownership Timeline"
-            subtitle="30 Wears Logged"
-            thumbnail={
-              <div className="h-full w-full bg-gradient-to-br from-leather via-terracotta to-stone-900" />
-            }
-            icon={<Clock className="h-5 w-5 text-bronze" />}
-          />
-          <ModuleCard
-            index={1}
-            to="/provenance"
-            title="Craft Provenance"
-            subtitle="Material & Design Journey"
-            icon={<Hammer className="h-5 w-5 text-bronze" />}
-          />
-          <ModuleCard
-            index={2}
-            to="/documentary"
-            title="Documentary: Origin"
-            subtitle="12 min · Bespoke Atelier"
-            video
-            thumbnail={
-              <div className="h-full w-full bg-[radial-gradient(circle_at_30%_30%,oklch(0.45_0.1_50),oklch(0.12_0.01_50))]" />
-            }
-          />
-          <ModuleCard
-            index={3}
-            title="Documentary: Transformation"
-            subtitle="Unlocks at 50 Wears"
-            locked
-            thumbnail={
-              <div className="h-full w-full bg-[radial-gradient(circle_at_70%_60%,oklch(0.32_0.08_30),oklch(0.1_0.01_30))]" />
-            }
-          />
-          <ModuleCard
-            index={4}
-            title="Archive Collection Access"
-            subtitle="Unlocks at Venerated Stage (KFI < 40)"
-            locked
-            icon={<Archive className="h-5 w-5 text-bronze" />}
-          />
+          {feed.map((m, i) => {
+            const Icon = m.icon;
+            return (
+              <ModuleCard
+                key={m.id}
+                index={i}
+                to={m.to}
+                title={m.title}
+                subtitle={m.resolvedSubtitle}
+                locked={m.locked}
+                video={m.video}
+                thumbnail={m.thumbnail ? <Thumb style={m.thumbnail} /> : undefined}
+                icon={<Icon className="h-5 w-5 text-bronze" />}
+              />
+            );
+          })}
         </section>
       </main>
 
@@ -184,7 +194,7 @@ function Index() {
             <Sparkles className="h-3 w-3 text-bronze" />
             <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
               Recommendation:{" "}
-              <span className="text-foreground">Condition Leather</span>
+              <span className="text-foreground">{recommendation.title}</span>
             </span>
           </motion.div>
         </div>

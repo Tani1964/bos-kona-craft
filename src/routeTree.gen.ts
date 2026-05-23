@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TimelineRouteImport } from './routes/timeline'
+import { Route as SystemRouteImport } from './routes/system'
 import { Route as ProvenanceRouteImport } from './routes/provenance'
 import { Route as DocumentaryRouteImport } from './routes/documentary'
 import { Route as IndexRouteImport } from './routes/index'
@@ -17,6 +18,11 @@ import { Route as IndexRouteImport } from './routes/index'
 const TimelineRoute = TimelineRouteImport.update({
   id: '/timeline',
   path: '/timeline',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SystemRoute = SystemRouteImport.update({
+  id: '/system',
+  path: '/system',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProvenanceRoute = ProvenanceRouteImport.update({
@@ -39,12 +45,14 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/documentary': typeof DocumentaryRoute
   '/provenance': typeof ProvenanceRoute
+  '/system': typeof SystemRoute
   '/timeline': typeof TimelineRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/documentary': typeof DocumentaryRoute
   '/provenance': typeof ProvenanceRoute
+  '/system': typeof SystemRoute
   '/timeline': typeof TimelineRoute
 }
 export interface FileRoutesById {
@@ -52,20 +60,28 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/documentary': typeof DocumentaryRoute
   '/provenance': typeof ProvenanceRoute
+  '/system': typeof SystemRoute
   '/timeline': typeof TimelineRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/documentary' | '/provenance' | '/timeline'
+  fullPaths: '/' | '/documentary' | '/provenance' | '/system' | '/timeline'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/documentary' | '/provenance' | '/timeline'
-  id: '__root__' | '/' | '/documentary' | '/provenance' | '/timeline'
+  to: '/' | '/documentary' | '/provenance' | '/system' | '/timeline'
+  id:
+    | '__root__'
+    | '/'
+    | '/documentary'
+    | '/provenance'
+    | '/system'
+    | '/timeline'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DocumentaryRoute: typeof DocumentaryRoute
   ProvenanceRoute: typeof ProvenanceRoute
+  SystemRoute: typeof SystemRoute
   TimelineRoute: typeof TimelineRoute
 }
 
@@ -76,6 +92,13 @@ declare module '@tanstack/react-router' {
       path: '/timeline'
       fullPath: '/timeline'
       preLoaderRoute: typeof TimelineRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/system': {
+      id: '/system'
+      path: '/system'
+      fullPath: '/system'
+      preLoaderRoute: typeof SystemRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/provenance': {
@@ -106,6 +129,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DocumentaryRoute: DocumentaryRoute,
   ProvenanceRoute: ProvenanceRoute,
+  SystemRoute: SystemRoute,
   TimelineRoute: TimelineRoute,
 }
 export const routeTree = rootRouteImport
