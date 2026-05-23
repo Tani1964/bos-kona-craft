@@ -191,12 +191,17 @@ function Index() {
             <Footprints className="h-5 w-5" />
             <span className="text-sm tracking-wide">Out the Door</span>
           </button>
-          <button className="flex h-14 flex-1 items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/5 font-bold text-foreground transition active:scale-[0.98]">
+          <button
+            onClick={() => setCareOpen(true)}
+            className="flex h-14 flex-1 items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/5 font-bold text-foreground transition active:scale-[0.98]"
+          >
             <Shield className="h-5 w-5" />
             <span className="text-sm tracking-wide">Log Care</span>
           </button>
         </div>
       </motion.footer>
+
+      <CareSheet open={careOpen} onClose={() => setCareOpen(false)} />
     </div>
   );
 }
