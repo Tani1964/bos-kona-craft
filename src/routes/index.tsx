@@ -194,7 +194,7 @@ function Index() {
             <Sparkles className="h-3 w-3 text-bronze" />
             <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
               Recommendation:{" "}
-              <span className="text-foreground">Condition Leather</span>
+              <span className="text-foreground">{recommendation.title}</span>
             </span>
           </motion.div>
         </div>
