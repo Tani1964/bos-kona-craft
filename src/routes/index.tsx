@@ -131,6 +131,7 @@ function Index() {
           />
           <ModuleCard
             index={1}
+            to="/provenance"
             title="Craft Provenance"
             subtitle="Material & Design Journey"
             icon={<Hammer className="h-5 w-5 text-bronze" />}
