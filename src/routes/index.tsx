@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { motion } from "framer-motion";
+import { useState } from "react";
 import {
   ShoppingBag,
   ShieldCheck,
@@ -13,6 +14,7 @@ import {
 } from "lucide-react";
 import { KfiRing } from "@/components/passport/KfiRing";
 import { ModuleCard } from "@/components/passport/ModuleCard";
+import { CareSheet } from "@/components/passport/CareSheet";
 
 export const Route = createFileRoute("/")({
   component: Index,
