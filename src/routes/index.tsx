@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import {
@@ -19,15 +20,7 @@ import {
   estimateLifespanYears,
   type AssetTelemetry,
 } from "@/lib/passport/state-engine";
-
-// Module 14/15: telemetry feeds the State Engine; Ecosystem resolves the feed.
-const TELEMETRY: AssetTelemetry = {
-  wears: 30,
-  careEntries: 4,
-  nfcScans: 7,
-  ageDays: 210,
-  repairs: 0,
-};
+import { DEFAULT_SERIAL, passportQueryOptions } from "@/lib/passport/queries";
 
 function Thumb({ style }: { style: ThumbnailStyle }) {
   if (style.kind === "gradient") {
@@ -49,6 +42,8 @@ function Thumb({ style }: { style: ThumbnailStyle }) {
 }
 
 export const Route = createFileRoute("/")({
+  loader: ({ context }) =>
+    context.queryClient.ensureQueryData(passportQueryOptions(DEFAULT_SERIAL)),
   component: Index,
   head: () => ({
     meta: [
@@ -70,17 +65,42 @@ function fade(delay = 0) {
   };
 }
 
+const FALLBACK_TELEMETRY: AssetTelemetry = {
+  wears: 0,
+  careEntries: 0,
+  nfcScans: 0,
+  ageDays: 0,
+  repairs: 0,
+};
+
 function Index() {
   const [careOpen, setCareOpen] = useState(false);
-  const kfi = computeKfi(TELEMETRY);
+  const { data: passport } = useSuspenseQuery(passportQueryOptions(DEFAULT_SERIAL));
+
+  const t = (passport?.asset_telemetry as any) ?? null;
+  const telemetry: AssetTelemetry = t
+    ? {
+        wears: t.wears ?? 0,
+        careEntries: t.care_entries ?? 0,
+        nfcScans: t.nfc_scans ?? 0,
+        ageDays: t.age_days ?? 0,
+        repairs: t.repairs ?? 0,
+      }
+    : FALLBACK_TELEMETRY;
+
+  const kfi = computeKfi(telemetry);
   const stage = deriveStage(kfi.score);
-  const lifespan = estimateLifespanYears(TELEMETRY);
-  const recommendation = deriveRecommendation(TELEMETRY);
-  const feed = resolveFeed(TELEMETRY);
+  const lifespan = estimateLifespanYears(telemetry);
+  const recommendation = deriveRecommendation(telemetry);
+  const feed = resolveFeed(telemetry);
+
+  const modelName = passport?.model_name ?? "—";
+  const status = passport?.status ?? "New";
+  const serial = passport?.serial ?? DEFAULT_SERIAL;
+
   return (
     <div className="min-h-screen bg-stone-950 text-foreground grain">
       <main className="relative mx-auto h-screen max-w-md overflow-y-auto overflow-x-hidden pb-32">
-        {/* ── Top Nav ───────────────────────────────────────── */}
         <motion.header
           {...fade(0)}
           className="sticky top-0 z-30 flex items-center justify-between bg-stone-950/80 px-5 pt-6 pb-3 backdrop-blur-md"
@@ -93,21 +113,20 @@ function Index() {
           </button>
         </motion.header>
 
-        {/* ── Identity ─────────────────────────────────────── */}
         <section className="px-5 pt-4">
           <motion.h1
             {...fade(0.05)}
             className="font-serif text-4xl leading-[1.05] tracking-tight text-foreground"
           >
-            Air Formula F1
+            {modelName}
             <br />
-            <span className="text-bronze">New</span>
+            <span className="text-bronze">{status}</span>
           </motion.h1>
           <motion.p
             {...fade(0.12)}
             className="mt-2 font-mono text-[11px] uppercase tracking-[0.25em] text-muted-foreground"
           >
-            Asset // 8F92-A4B1
+            Asset // {serial}
           </motion.p>
 
           <motion.div {...fade(0.18)} className="mt-4 flex items-center gap-2">
@@ -125,7 +144,6 @@ function Index() {
           </motion.div>
         </section>
 
-        {/* ── Intelligence Engine ──────────────────────────── */}
         <section className="mt-8 px-5">
           <KfiRing score={kfi.score} stage={stage} />
 
@@ -147,7 +165,6 @@ function Index() {
           </motion.p>
         </section>
 
-        {/* ── Dynamic Module Feed ──────────────────────────── */}
         <section className="mt-8 px-5">
           <motion.h2
             {...fade(0.4)}
@@ -175,7 +192,6 @@ function Index() {
         </section>
       </main>
 
-      {/* ── Fixed Bottom Action Bar ─────────────────────────── */}
       <motion.footer
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
@@ -183,7 +199,6 @@ function Index() {
         className="fixed bottom-0 left-1/2 z-50 w-full max-w-md -translate-x-1/2 bg-stone-950/90 px-4 pt-3 pb-safe backdrop-blur-xl"
         style={{ boxShadow: "0 -20px 40px -10px oklch(0 0 0 / 0.5)" }}
       >
-        {/* Care recommendation pill */}
         <div className="pointer-events-none absolute -top-5 left-1/2 -translate-x-1/2">
           <motion.div
             initial={{ opacity: 0, y: 6 }}
