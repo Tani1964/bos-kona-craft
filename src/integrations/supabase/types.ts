@@ -61,6 +61,7 @@ export type Database = {
           model_name: string
           serial: string
           status: string
+          store_product_id: string | null
           updated_at: string
         }
         Insert: {
@@ -71,6 +72,7 @@ export type Database = {
           model_name: string
           serial: string
           status?: string
+          store_product_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -81,6 +83,7 @@ export type Database = {
           model_name?: string
           serial?: string
           status?: string
+          store_product_id?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -233,6 +236,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      ownership_records: {
+        Row: {
+          acquired_at: string
+          asset_id: string
+          created_at: string
+          event_type: string
+          id: string
+          notes: string | null
+          owner_ref: string | null
+          store_order_id: string | null
+        }
+        Insert: {
+          acquired_at?: string
+          asset_id: string
+          created_at?: string
+          event_type?: string
+          id?: string
+          notes?: string | null
+          owner_ref?: string | null
+          store_order_id?: string | null
+        }
+        Update: {
+          acquired_at?: string
+          asset_id?: string
+          created_at?: string
+          event_type?: string
+          id?: string
+          notes?: string | null
+          owner_ref?: string | null
+          store_order_id?: string | null
+        }
+        Relationships: []
       }
       provenance_stages: {
         Row: {
