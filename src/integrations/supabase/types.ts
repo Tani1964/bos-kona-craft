@@ -14,16 +14,306 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      asset_telemetry: {
+        Row: {
+          age_days: number
+          asset_id: string
+          care_entries: number
+          nfc_scans: number
+          repairs: number
+          updated_at: string
+          wears: number
+        }
+        Insert: {
+          age_days?: number
+          asset_id: string
+          care_entries?: number
+          nfc_scans?: number
+          repairs?: number
+          updated_at?: string
+          wears?: number
+        }
+        Update: {
+          age_days?: number
+          asset_id?: string
+          care_entries?: number
+          nfc_scans?: number
+          repairs?: number
+          updated_at?: string
+          wears?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_telemetry_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: true
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assets: {
+        Row: {
+          created_at: string
+          hero_style: Json
+          id: string
+          lot: string | null
+          model_name: string
+          serial: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          hero_style?: Json
+          id?: string
+          lot?: string | null
+          model_name: string
+          serial: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          hero_style?: Json
+          id?: string
+          lot?: string | null
+          model_name?: string
+          serial?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      atelier: {
+        Row: {
+          asset_id: string
+          lat: number | null
+          lng: number | null
+          location: string
+          name: string
+        }
+        Insert: {
+          asset_id: string
+          lat?: number | null
+          lng?: number | null
+          location: string
+          name: string
+        }
+        Update: {
+          asset_id?: string
+          lat?: number | null
+          lng?: number | null
+          location?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "atelier_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: true
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      documentary: {
+        Row: {
+          asset_id: string
+          chapters: Json
+          credits: Json
+          format: string
+          poster_path: string | null
+          runtime: string
+          synopsis: string
+          title: string
+          video_path: string | null
+          year: string
+        }
+        Insert: {
+          asset_id: string
+          chapters?: Json
+          credits?: Json
+          format?: string
+          poster_path?: string | null
+          runtime?: string
+          synopsis?: string
+          title?: string
+          video_path?: string | null
+          year?: string
+        }
+        Update: {
+          asset_id?: string
+          chapters?: Json
+          credits?: Json
+          format?: string
+          poster_path?: string | null
+          runtime?: string
+          synopsis?: string
+          title?: string
+          video_path?: string | null
+          year?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documentary_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: true
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      makers: {
+        Row: {
+          asset_id: string
+          id: string
+          name: string
+          position: number
+          role: string
+          years: string
+        }
+        Insert: {
+          asset_id: string
+          id?: string
+          name: string
+          position?: number
+          role: string
+          years: string
+        }
+        Update: {
+          asset_id?: string
+          id?: string
+          name?: string
+          position?: number
+          role?: string
+          years?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "makers_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      module_overrides: {
+        Row: {
+          asset_id: string
+          id: string
+          module_id: string
+          subtitle_override: string | null
+          thumbnail_override: Json | null
+          title_override: string | null
+        }
+        Insert: {
+          asset_id: string
+          id?: string
+          module_id: string
+          subtitle_override?: string | null
+          thumbnail_override?: Json | null
+          title_override?: string | null
+        }
+        Update: {
+          asset_id?: string
+          id?: string
+          module_id?: string
+          subtitle_override?: string | null
+          thumbnail_override?: Json | null
+          title_override?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "module_overrides_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      provenance_stages: {
+        Row: {
+          asset_id: string
+          body: string
+          date_text: string
+          icon_key: string
+          id: string
+          label: string
+          location: string
+          position: number
+          title: string
+        }
+        Insert: {
+          asset_id: string
+          body: string
+          date_text: string
+          icon_key?: string
+          id?: string
+          label: string
+          location: string
+          position?: number
+          title: string
+        }
+        Update: {
+          asset_id?: string
+          body?: string
+          date_text?: string
+          icon_key?: string
+          id?: string
+          label?: string
+          location?: string
+          position?: number
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "provenance_stages_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +440,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+    },
   },
 } as const
