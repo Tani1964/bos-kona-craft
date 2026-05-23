@@ -7,14 +7,46 @@ import {
   Footprints,
   Shield,
   Sparkles,
-  Clock,
-  Hammer,
-  Film,
-  Archive,
 } from "lucide-react";
 import { KfiRing } from "@/components/passport/KfiRing";
 import { ModuleCard } from "@/components/passport/ModuleCard";
 import { CareSheet } from "@/components/passport/CareSheet";
+import { resolveFeed, type ThumbnailStyle } from "@/lib/passport/ecosystem";
+import {
+  computeKfi,
+  deriveStage,
+  deriveRecommendation,
+  estimateLifespanYears,
+  type AssetTelemetry,
+} from "@/lib/passport/state-engine";
+
+// Module 14/15: telemetry feeds the State Engine; Ecosystem resolves the feed.
+const TELEMETRY: AssetTelemetry = {
+  wears: 30,
+  careEntries: 4,
+  nfcScans: 7,
+  ageDays: 210,
+  repairs: 0,
+};
+
+function Thumb({ style }: { style: ThumbnailStyle }) {
+  if (style.kind === "gradient") {
+    return (
+      <div
+        className={`h-full w-full bg-gradient-to-br ${style.from} ${style.via ?? ""} ${style.to}`}
+      />
+    );
+  }
+  if (style.kind === "radial") {
+    return (
+      <div
+        className="h-full w-full"
+        style={{ background: `radial-gradient(${style.spec.replace(/_/g, " ")})` }}
+      />
+    );
+  }
+  return null;
+}
 
 export const Route = createFileRoute("/")({
   component: Index,
