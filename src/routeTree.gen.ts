@@ -12,8 +12,12 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as TimelineRouteImport } from './routes/timeline'
 import { Route as SystemRouteImport } from './routes/system'
 import { Route as ProvenanceRouteImport } from './routes/provenance'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as DocumentaryRouteImport } from './routes/documentary'
+import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/_admin'
+import { Route as AuthenticatedAdminAdminRouteImport } from './routes/_authenticated/_admin/admin'
 
 const TimelineRoute = TimelineRouteImport.update({
   id: '/timeline',
@@ -30,9 +34,18 @@ const ProvenanceRoute = ProvenanceRouteImport.update({
   path: '/provenance',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DocumentaryRoute = DocumentaryRouteImport.update({
   id: '/documentary',
   path: '/documentary',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRoute = AuthenticatedRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -40,46 +53,83 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/_admin',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedAdminAdminRoute = AuthenticatedAdminAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/documentary': typeof DocumentaryRoute
+  '/login': typeof LoginRoute
   '/provenance': typeof ProvenanceRoute
   '/system': typeof SystemRoute
   '/timeline': typeof TimelineRoute
+  '/admin': typeof AuthenticatedAdminAdminRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/documentary': typeof DocumentaryRoute
+  '/login': typeof LoginRoute
   '/provenance': typeof ProvenanceRoute
   '/system': typeof SystemRoute
   '/timeline': typeof TimelineRoute
+  '/admin': typeof AuthenticatedAdminAdminRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/documentary': typeof DocumentaryRoute
+  '/login': typeof LoginRoute
   '/provenance': typeof ProvenanceRoute
   '/system': typeof SystemRoute
   '/timeline': typeof TimelineRoute
+  '/_authenticated/_admin': typeof AuthenticatedAdminRouteWithChildren
+  '/_authenticated/_admin/admin': typeof AuthenticatedAdminAdminRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/documentary' | '/provenance' | '/system' | '/timeline'
-  fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/documentary' | '/provenance' | '/system' | '/timeline'
-  id:
-    | '__root__'
+  fullPaths:
     | '/'
     | '/documentary'
+    | '/login'
     | '/provenance'
     | '/system'
     | '/timeline'
+    | '/admin'
+  fileRoutesByTo: FileRoutesByTo
+  to:
+    | '/'
+    | '/documentary'
+    | '/login'
+    | '/provenance'
+    | '/system'
+    | '/timeline'
+    | '/admin'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/documentary'
+    | '/login'
+    | '/provenance'
+    | '/system'
+    | '/timeline'
+    | '/_authenticated/_admin'
+    | '/_authenticated/_admin/admin'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   DocumentaryRoute: typeof DocumentaryRoute
+  LoginRoute: typeof LoginRoute
   ProvenanceRoute: typeof ProvenanceRoute
   SystemRoute: typeof SystemRoute
   TimelineRoute: typeof TimelineRoute
@@ -108,11 +158,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProvenanceRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/documentary': {
       id: '/documentary'
       path: '/documentary'
       fullPath: '/documentary'
       preLoaderRoute: typeof DocumentaryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -122,12 +186,51 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/_admin': {
+      id: '/_authenticated/_admin'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/_admin/admin': {
+      id: '/_authenticated/_admin/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminAdminRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
   }
 }
 
+interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminAdminRoute: typeof AuthenticatedAdminAdminRoute
+}
+
+const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminAdminRoute: AuthenticatedAdminAdminRoute,
+}
+
+const AuthenticatedAdminRouteWithChildren =
+  AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
+
+interface AuthenticatedRouteChildren {
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
+}
+
+const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
+}
+
+const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
+  AuthenticatedRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRoute: AuthenticatedRouteWithChildren,
   DocumentaryRoute: DocumentaryRoute,
+  LoginRoute: LoginRoute,
   ProvenanceRoute: ProvenanceRoute,
   SystemRoute: SystemRoute,
   TimelineRoute: TimelineRoute,
