@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, redirect } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
@@ -12,6 +12,8 @@ import {
   saveAtelier,
   saveDocumentary,
   getDocumentaryUploadUrl,
+  claimAdminIfNone,
+  isCurrentUserAdmin,
 } from "@/lib/passport.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -27,6 +29,11 @@ import {
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 export const Route = createFileRoute("/_authenticated/admin")({
+  beforeLoad: async () => {
+    await claimAdminIfNone().catch(() => {});
+    const { admin } = await isCurrentUserAdmin();
+    if (!admin) throw redirect({ to: "/" });
+  },
   component: AdminPage,
   head: () => ({ meta: [{ title: "Admin — Bos' Kọ́nà" }] }),
 });
