@@ -39,6 +39,7 @@ function fade(delay = 0) {
 }
 
 function Index() {
+  const [careOpen, setCareOpen] = useState(false);
   return (
     <div className="min-h-screen bg-stone-950 text-foreground grain">
       <main className="relative mx-auto h-screen max-w-md overflow-y-auto overflow-x-hidden pb-32">
