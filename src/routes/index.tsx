@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { motion } from "framer-motion";
+import { useState } from "react";
 import {
   ShoppingBag,
   ShieldCheck,
@@ -13,6 +14,7 @@ import {
 } from "lucide-react";
 import { KfiRing } from "@/components/passport/KfiRing";
 import { ModuleCard } from "@/components/passport/ModuleCard";
+import { CareSheet } from "@/components/passport/CareSheet";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -37,6 +39,7 @@ function fade(delay = 0) {
 }
 
 function Index() {
+  const [careOpen, setCareOpen] = useState(false);
   return (
     <div className="min-h-screen bg-stone-950 text-foreground grain">
       <main className="relative mx-auto h-screen max-w-md overflow-y-auto overflow-x-hidden pb-32">
@@ -188,12 +191,17 @@ function Index() {
             <Footprints className="h-5 w-5" />
             <span className="text-sm tracking-wide">Out the Door</span>
           </button>
-          <button className="flex h-14 flex-1 items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/5 font-bold text-foreground transition active:scale-[0.98]">
+          <button
+            onClick={() => setCareOpen(true)}
+            className="flex h-14 flex-1 items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/5 font-bold text-foreground transition active:scale-[0.98]"
+          >
             <Shield className="h-5 w-5" />
             <span className="text-sm tracking-wide">Log Care</span>
           </button>
         </div>
       </motion.footer>
+
+      <CareSheet open={careOpen} onClose={() => setCareOpen(false)} />
     </div>
   );
 }
