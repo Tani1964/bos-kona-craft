@@ -121,6 +121,7 @@ function Index() {
 
           <ModuleCard
             index={0}
+            to="/timeline"
             title="Ownership Timeline"
             subtitle="30 Wears Logged"
             thumbnail={
