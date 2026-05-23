@@ -138,6 +138,7 @@ function Index() {
           />
           <ModuleCard
             index={2}
+            to="/documentary"
             title="Documentary: Origin"
             subtitle="12 min · Bespoke Atelier"
             video
