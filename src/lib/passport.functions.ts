@@ -51,15 +51,19 @@ export const getPassport = createServerFn({ method: "GET" })
 
 // ── Admin: list / create / detail ─────────────────────────────
 
+async function assertAdmin(ctx: { userId: string }) {
+  const { data: roles, error } = await supabaseAdmin
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", ctx.userId);
+  if (error) throw new Error(error.message);
+  if (!roles?.some((r: any) => r.role === "admin")) throw new Error("Forbidden");
+}
+
 export const adminListAssets = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { data: roles } = await context.supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", context.userId);
-    const isAdmin = roles?.some((r: any) => r.role === "admin");
-    if (!isAdmin) throw new Error("Forbidden");
+    await assertAdmin(context);
     const { data, error } = await supabaseAdmin
       .from("assets")
       .select("id, serial, model_name, status, updated_at")
@@ -67,14 +71,6 @@ export const adminListAssets = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
     return data ?? [];
   });
-
-async function assertAdmin(ctx: { supabase: any; userId: string }) {
-  const { data: roles } = await ctx.supabase
-    .from("user_roles")
-    .select("role")
-    .eq("user_id", ctx.userId);
-  if (!roles?.some((r: any) => r.role === "admin")) throw new Error("Forbidden");
-}
 
 export const createAsset = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
