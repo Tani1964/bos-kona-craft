@@ -127,15 +127,15 @@ function Index() {
 
         {/* ── Intelligence Engine ──────────────────────────── */}
         <section className="mt-8 px-5">
-          <KfiRing score={92.6} stage="Breaking In" />
+          <KfiRing score={kfi.score} stage={stage} />
 
           <motion.div
             {...fade(0.6)}
             className="mt-6 grid grid-cols-3 gap-2 rounded-xl border border-white/10 bg-white/5 p-3"
           >
-            <Stat label="Wear" value="-15.0" tone="bad" />
-            <Stat label="Age" value="-2.4" tone="bad" />
-            <Stat label="Care" value="+10.0" tone="good" />
+            <Stat label="Wear" value={kfi.wearImpact.toFixed(1)} tone="bad" />
+            <Stat label="Age" value={kfi.ageImpact.toFixed(1)} tone="bad" />
+            <Stat label="Care" value={`+${kfi.careImpact.toFixed(1)}`} tone="good" />
           </motion.div>
 
           <motion.p
@@ -143,7 +143,7 @@ function Index() {
             className="mt-4 text-center font-mono text-[10.5px] uppercase tracking-[0.2em] text-muted-foreground"
           >
             Estimated lifespan at current wear rate:{" "}
-            <span className="text-bronze">4.2 Years</span>
+            <span className="text-bronze">{lifespan} Years</span>
           </motion.p>
         </section>
 
