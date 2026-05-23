@@ -286,7 +286,7 @@ export const claimAdminIfNone = createServerFn({ method: "POST" })
 export const isCurrentUserAdmin = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { data } = await context.supabase
+    const { data } = await supabaseAdmin
       .from("user_roles")
       .select("role")
       .eq("user_id", context.userId)
