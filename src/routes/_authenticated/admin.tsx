@@ -30,7 +30,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   beforeLoad: async () => {
-    if (typeof window === "undefined") return;
+    if (import.meta.env.SSR) return;
     const { data: authData, error: authError } = await supabase.auth.getUser();
     if (authError || !authData.user) throw redirect({ to: "/login" });
     await claimAdminIfNone().catch(() => {});
