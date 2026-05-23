@@ -17,6 +17,7 @@ import { Route as DocumentaryRouteImport } from './routes/documentary'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as ApiPublicStorefrontWebhookRouteImport } from './routes/api/public/storefront-webhook'
 
 const TimelineRoute = TimelineRouteImport.update({
   id: '/timeline',
@@ -57,6 +58,12 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const ApiPublicStorefrontWebhookRoute =
+  ApiPublicStorefrontWebhookRouteImport.update({
+    id: '/api/public/storefront-webhook',
+    path: '/api/public/storefront-webhook',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -66,6 +73,7 @@ export interface FileRoutesByFullPath {
   '/system': typeof SystemRoute
   '/timeline': typeof TimelineRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/api/public/storefront-webhook': typeof ApiPublicStorefrontWebhookRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -75,6 +83,7 @@ export interface FileRoutesByTo {
   '/system': typeof SystemRoute
   '/timeline': typeof TimelineRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/api/public/storefront-webhook': typeof ApiPublicStorefrontWebhookRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -86,6 +95,7 @@ export interface FileRoutesById {
   '/system': typeof SystemRoute
   '/timeline': typeof TimelineRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/api/public/storefront-webhook': typeof ApiPublicStorefrontWebhookRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -97,6 +107,7 @@ export interface FileRouteTypes {
     | '/system'
     | '/timeline'
     | '/admin'
+    | '/api/public/storefront-webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -106,6 +117,7 @@ export interface FileRouteTypes {
     | '/system'
     | '/timeline'
     | '/admin'
+    | '/api/public/storefront-webhook'
   id:
     | '__root__'
     | '/'
@@ -116,6 +128,7 @@ export interface FileRouteTypes {
     | '/system'
     | '/timeline'
     | '/_authenticated/admin'
+    | '/api/public/storefront-webhook'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -126,6 +139,7 @@ export interface RootRouteChildren {
   ProvenanceRoute: typeof ProvenanceRoute
   SystemRoute: typeof SystemRoute
   TimelineRoute: typeof TimelineRoute
+  ApiPublicStorefrontWebhookRoute: typeof ApiPublicStorefrontWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -186,6 +200,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/api/public/storefront-webhook': {
+      id: '/api/public/storefront-webhook'
+      path: '/api/public/storefront-webhook'
+      fullPath: '/api/public/storefront-webhook'
+      preLoaderRoute: typeof ApiPublicStorefrontWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -209,7 +230,18 @@ const rootRouteChildren: RootRouteChildren = {
   ProvenanceRoute: ProvenanceRoute,
   SystemRoute: SystemRoute,
   TimelineRoute: TimelineRoute,
+  ApiPublicStorefrontWebhookRoute: ApiPublicStorefrontWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
