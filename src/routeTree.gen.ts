@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as TimelineRouteImport } from './routes/timeline'
 import { Route as SystemRouteImport } from './routes/system'
 import { Route as ProvenanceRouteImport } from './routes/provenance'
+import { Route as OwnershipRouteImport } from './routes/ownership'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as DocumentaryRouteImport } from './routes/documentary'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
@@ -32,6 +33,11 @@ const SystemRoute = SystemRouteImport.update({
 const ProvenanceRoute = ProvenanceRouteImport.update({
   id: '/provenance',
   path: '/provenance',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OwnershipRoute = OwnershipRouteImport.update({
+  id: '/ownership',
+  path: '/ownership',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -69,6 +75,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/documentary': typeof DocumentaryRoute
   '/login': typeof LoginRoute
+  '/ownership': typeof OwnershipRoute
   '/provenance': typeof ProvenanceRoute
   '/system': typeof SystemRoute
   '/timeline': typeof TimelineRoute
@@ -79,6 +86,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/documentary': typeof DocumentaryRoute
   '/login': typeof LoginRoute
+  '/ownership': typeof OwnershipRoute
   '/provenance': typeof ProvenanceRoute
   '/system': typeof SystemRoute
   '/timeline': typeof TimelineRoute
@@ -91,6 +99,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/documentary': typeof DocumentaryRoute
   '/login': typeof LoginRoute
+  '/ownership': typeof OwnershipRoute
   '/provenance': typeof ProvenanceRoute
   '/system': typeof SystemRoute
   '/timeline': typeof TimelineRoute
@@ -103,6 +112,7 @@ export interface FileRouteTypes {
     | '/'
     | '/documentary'
     | '/login'
+    | '/ownership'
     | '/provenance'
     | '/system'
     | '/timeline'
@@ -113,6 +123,7 @@ export interface FileRouteTypes {
     | '/'
     | '/documentary'
     | '/login'
+    | '/ownership'
     | '/provenance'
     | '/system'
     | '/timeline'
@@ -124,6 +135,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/documentary'
     | '/login'
+    | '/ownership'
     | '/provenance'
     | '/system'
     | '/timeline'
@@ -136,6 +148,7 @@ export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   DocumentaryRoute: typeof DocumentaryRoute
   LoginRoute: typeof LoginRoute
+  OwnershipRoute: typeof OwnershipRoute
   ProvenanceRoute: typeof ProvenanceRoute
   SystemRoute: typeof SystemRoute
   TimelineRoute: typeof TimelineRoute
@@ -163,6 +176,13 @@ declare module '@tanstack/react-router' {
       path: '/provenance'
       fullPath: '/provenance'
       preLoaderRoute: typeof ProvenanceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ownership': {
+      id: '/ownership'
+      path: '/ownership'
+      fullPath: '/ownership'
+      preLoaderRoute: typeof OwnershipRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -227,6 +247,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   DocumentaryRoute: DocumentaryRoute,
   LoginRoute: LoginRoute,
+  OwnershipRoute: OwnershipRoute,
   ProvenanceRoute: ProvenanceRoute,
   SystemRoute: SystemRoute,
   TimelineRoute: TimelineRoute,
@@ -235,13 +256,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

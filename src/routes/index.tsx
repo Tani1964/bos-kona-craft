@@ -8,7 +8,10 @@ import {
   Footprints,
   Shield,
   Sparkles,
+  ExternalLink,
 } from "lucide-react";
+import { productUrl } from "@/lib/storefront/boskona";
+
 import { KfiRing } from "@/components/passport/KfiRing";
 import { ModuleCard } from "@/components/passport/ModuleCard";
 import { CareSheet } from "@/components/passport/CareSheet";
@@ -97,6 +100,8 @@ function Index() {
   const modelName = passport?.model_name ?? "—";
   const status = passport?.status ?? "New";
   const serial = passport?.serial ?? DEFAULT_SERIAL;
+  const storeProductId = (passport as any)?.store_product_id as string | null | undefined;
+
 
   return (
     <div className="min-h-screen bg-stone-950 text-foreground grain">
@@ -128,6 +133,20 @@ function Index() {
           >
             Asset // {serial}
           </motion.p>
+
+          {storeProductId && (
+            <motion.a
+              {...fade(0.15)}
+              href={productUrl(storeProductId)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-3 inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.25em] text-bronze hover:text-bronze/80"
+            >
+              Purchased at Bos' Kọ́nà
+              <ExternalLink className="h-3 w-3" />
+            </motion.a>
+          )}
+
 
           <motion.div {...fade(0.18)} className="mt-4 flex items-center gap-2">
             <span className="inline-flex items-center gap-1.5 rounded-full border border-verified/30 bg-verified/10 px-3 py-1">
