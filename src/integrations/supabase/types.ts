@@ -268,7 +268,15 @@ export type Database = {
           owner_ref?: string | null
           store_order_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "ownership_records_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       provenance_stages: {
         Row: {
