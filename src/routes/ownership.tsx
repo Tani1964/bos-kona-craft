@@ -20,7 +20,7 @@ export const Route = createFileRoute("/ownership")({
   }),
 });
 
-type Record = {
+type OwnershipRecord = {
   id: string;
   store_order_id: string | null;
   owner_ref: string | null;
@@ -38,7 +38,8 @@ const EVENT_LABEL: Record<string, string> = {
 
 function OwnershipPage() {
   const { data: passport } = useSuspenseQuery(passportQueryOptions(DEFAULT_SERIAL));
-  const records = ((passport as any)?.ownership_records ?? []) as Record[];
+  const records = ((passport as any)?.ownership_records ?? []) as OwnershipRecord[];
+
   const storeProductId = (passport as any)?.store_product_id as string | null | undefined;
 
   return (
