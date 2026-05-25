@@ -22,13 +22,14 @@ export const getPassport = createServerFn({ method: "GET" })
     const { data: asset, error } = await supabaseAdmin
       .from("assets")
       .select(
-        `id, serial, model_name, status, lot, hero_style,
+        `id, serial, model_name, status, lot, hero_style, store_product_id,
          asset_telemetry (wears, nfc_scans, care_entries, repairs, age_days),
          provenance_stages (id, position, icon_key, label, title, body, location, date_text),
          makers (id, position, name, role, years),
          atelier (name, location, lat, lng),
          documentary (video_path, poster_path, title, runtime, year, format, synopsis, chapters, credits),
-         module_overrides (module_id, title_override, subtitle_override, thumbnail_override)`,
+         module_overrides (module_id, title_override, subtitle_override, thumbnail_override),
+         ownership_records (id, store_order_id, owner_ref, event_type, acquired_at, notes)`,
       )
       .eq("serial", data.serial)
       .maybeSingle();
@@ -37,6 +38,10 @@ export const getPassport = createServerFn({ method: "GET" })
     // sort children
     asset.provenance_stages?.sort((a: any, b: any) => a.position - b.position);
     asset.makers?.sort((a: any, b: any) => a.position - b.position);
+    asset.ownership_records?.sort(
+      (a: any, b: any) =>
+        new Date(a.acquired_at).getTime() - new Date(b.acquired_at).getTime(),
+    );
     // signed video url if private
     let videoUrl: string | null = null;
     const docVideo = (asset.documentary as any)?.video_path as string | undefined;
@@ -48,6 +53,7 @@ export const getPassport = createServerFn({ method: "GET" })
     }
     return { ...asset, video_url: videoUrl };
   });
+
 
 // ── Admin: list / create / detail ─────────────────────────────
 

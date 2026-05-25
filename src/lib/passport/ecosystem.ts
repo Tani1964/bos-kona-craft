@@ -11,8 +11,10 @@ import {
   Film,
   Archive,
   Sparkles,
+  ScrollText,
   type LucideIcon,
 } from "lucide-react";
+
 import {
   UnlockRules,
   buildContext,
@@ -53,6 +55,17 @@ export const ECOSYSTEM: EcosystemModule[] = [
     unlock: UnlockRules.always(),
     lockedHint: "",
   },
+  {
+    id: "ownership",
+    ordinal: 11,
+    title: "Chain of Ownership",
+    subtitle: () => "Provenance of acquisition",
+    to: "/ownership",
+    icon: ScrollText,
+    unlock: UnlockRules.always(),
+    lockedHint: "",
+  },
+
   {
     id: "provenance",
     ordinal: 7,
