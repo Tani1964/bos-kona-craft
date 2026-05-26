@@ -28,6 +28,9 @@ const PayloadSchema = z.object({
     id: z.string().min(1).max(128),
     purchased_at: z.string().datetime().optional(),
     owner_ref: z.string().max(255).optional(),
+    // E.164 phone (+ then 8–15 digits). This is the auth anchor — buyer
+    // verifies this number via OTP at /claim to unlock their passport.
+    owner_phone: z.string().regex(/^\+[1-9]\d{7,14}$/).optional(),
   }),
   product: z.object({
     id: z.string().min(1).max(128),
