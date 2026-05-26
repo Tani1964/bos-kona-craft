@@ -120,6 +120,132 @@ export type Database = {
           },
         ]
       }
+      care_events: {
+        Row: {
+          asset_id: string
+          created_at: string
+          id: string
+          occurred_at: string
+          owner_phone: string
+          raw_payload: Json | null
+          session_id: string | null
+          tool_id: string
+        }
+        Insert: {
+          asset_id: string
+          created_at?: string
+          id?: string
+          occurred_at?: string
+          owner_phone: string
+          raw_payload?: Json | null
+          session_id?: string | null
+          tool_id: string
+        }
+        Update: {
+          asset_id?: string
+          created_at?: string
+          id?: string
+          occurred_at?: string
+          owner_phone?: string
+          raw_payload?: Json | null
+          session_id?: string | null
+          tool_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "care_events_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "care_events_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "care_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "care_events_tool_id_fkey"
+            columns: ["tool_id"]
+            isOneToOne: false
+            referencedRelation: "care_tools"
+            referencedColumns: ["tool_id"]
+          },
+        ]
+      }
+      care_sessions: {
+        Row: {
+          asset_id: string
+          classification: string | null
+          created_at: string
+          ended_at: string | null
+          id: string
+          owner_phone: string
+          started_at: string
+          status: string
+          tools_used: string[]
+        }
+        Insert: {
+          asset_id: string
+          classification?: string | null
+          created_at?: string
+          ended_at?: string | null
+          id?: string
+          owner_phone: string
+          started_at?: string
+          status?: string
+          tools_used?: string[]
+        }
+        Update: {
+          asset_id?: string
+          classification?: string | null
+          created_at?: string
+          ended_at?: string | null
+          id?: string
+          owner_phone?: string
+          started_at?: string
+          status?: string
+          tools_used?: string[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "care_sessions_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      care_tools: {
+        Row: {
+          active: boolean
+          created_at: string
+          kfi_weight: number
+          tool_id: string
+          tool_name: string
+          tool_type: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          kfi_weight?: number
+          tool_id: string
+          tool_name: string
+          tool_type: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          kfi_weight?: number
+          tool_id?: string
+          tool_name?: string
+          tool_type?: string
+        }
+        Relationships: []
+      }
       documentary: {
         Row: {
           asset_id: string
@@ -245,6 +371,7 @@ export type Database = {
           event_type: string
           id: string
           notes: string | null
+          owner_phone: string | null
           owner_ref: string | null
           store_order_id: string | null
         }
@@ -255,6 +382,7 @@ export type Database = {
           event_type?: string
           id?: string
           notes?: string | null
+          owner_phone?: string | null
           owner_ref?: string | null
           store_order_id?: string | null
         }
@@ -265,6 +393,7 @@ export type Database = {
           event_type?: string
           id?: string
           notes?: string | null
+          owner_phone?: string | null
           owner_ref?: string | null
           store_order_id?: string | null
         }
