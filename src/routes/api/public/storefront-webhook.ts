@@ -111,6 +111,7 @@ export const Route = createFileRoute("/api/public/storefront-webhook")({
               asset_id: asset.id,
               store_order_id: order.id,
               owner_ref: order.owner_ref ?? null,
+              owner_phone: order.owner_phone ?? null,
               event_type: "purchase",
               acquired_at: order.purchased_at ?? new Date().toISOString(),
             },
