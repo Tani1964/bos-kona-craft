@@ -19,6 +19,7 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as ApiPublicStorefrontWebhookRouteImport } from './routes/api/public/storefront-webhook'
+import { Route as ApiPublicNfcTapRouteImport } from './routes/api/public/nfc-tap'
 
 const TimelineRoute = TimelineRouteImport.update({
   id: '/timeline',
@@ -70,6 +71,11 @@ const ApiPublicStorefrontWebhookRoute =
     path: '/api/public/storefront-webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicNfcTapRoute = ApiPublicNfcTapRouteImport.update({
+  id: '/api/public/nfc-tap',
+  path: '/api/public/nfc-tap',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -80,6 +86,7 @@ export interface FileRoutesByFullPath {
   '/system': typeof SystemRoute
   '/timeline': typeof TimelineRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/api/public/nfc-tap': typeof ApiPublicNfcTapRoute
   '/api/public/storefront-webhook': typeof ApiPublicStorefrontWebhookRoute
 }
 export interface FileRoutesByTo {
@@ -91,6 +98,7 @@ export interface FileRoutesByTo {
   '/system': typeof SystemRoute
   '/timeline': typeof TimelineRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/api/public/nfc-tap': typeof ApiPublicNfcTapRoute
   '/api/public/storefront-webhook': typeof ApiPublicStorefrontWebhookRoute
 }
 export interface FileRoutesById {
@@ -104,6 +112,7 @@ export interface FileRoutesById {
   '/system': typeof SystemRoute
   '/timeline': typeof TimelineRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/api/public/nfc-tap': typeof ApiPublicNfcTapRoute
   '/api/public/storefront-webhook': typeof ApiPublicStorefrontWebhookRoute
 }
 export interface FileRouteTypes {
@@ -117,6 +126,7 @@ export interface FileRouteTypes {
     | '/system'
     | '/timeline'
     | '/admin'
+    | '/api/public/nfc-tap'
     | '/api/public/storefront-webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -128,6 +138,7 @@ export interface FileRouteTypes {
     | '/system'
     | '/timeline'
     | '/admin'
+    | '/api/public/nfc-tap'
     | '/api/public/storefront-webhook'
   id:
     | '__root__'
@@ -140,6 +151,7 @@ export interface FileRouteTypes {
     | '/system'
     | '/timeline'
     | '/_authenticated/admin'
+    | '/api/public/nfc-tap'
     | '/api/public/storefront-webhook'
   fileRoutesById: FileRoutesById
 }
@@ -152,6 +164,7 @@ export interface RootRouteChildren {
   ProvenanceRoute: typeof ProvenanceRoute
   SystemRoute: typeof SystemRoute
   TimelineRoute: typeof TimelineRoute
+  ApiPublicNfcTapRoute: typeof ApiPublicNfcTapRoute
   ApiPublicStorefrontWebhookRoute: typeof ApiPublicStorefrontWebhookRoute
 }
 
@@ -227,6 +240,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicStorefrontWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/nfc-tap': {
+      id: '/api/public/nfc-tap'
+      path: '/api/public/nfc-tap'
+      fullPath: '/api/public/nfc-tap'
+      preLoaderRoute: typeof ApiPublicNfcTapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -251,8 +271,19 @@ const rootRouteChildren: RootRouteChildren = {
   ProvenanceRoute: ProvenanceRoute,
   SystemRoute: SystemRoute,
   TimelineRoute: TimelineRoute,
+  ApiPublicNfcTapRoute: ApiPublicNfcTapRoute,
   ApiPublicStorefrontWebhookRoute: ApiPublicStorefrontWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
