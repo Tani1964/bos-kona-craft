@@ -28,6 +28,9 @@ const PayloadSchema = z.object({
     id: z.string().min(1).max(128),
     purchased_at: z.string().datetime().optional(),
     owner_ref: z.string().max(255).optional(),
+    // E.164 phone (+ then 8–15 digits). This is the auth anchor — buyer
+    // verifies this number via OTP at /claim to unlock their passport.
+    owner_phone: z.string().regex(/^\+[1-9]\d{7,14}$/).optional(),
   }),
   product: z.object({
     id: z.string().min(1).max(128),
@@ -108,6 +111,7 @@ export const Route = createFileRoute("/api/public/storefront-webhook")({
               asset_id: asset.id,
               store_order_id: order.id,
               owner_ref: order.owner_ref ?? null,
+              owner_phone: order.owner_phone ?? null,
               event_type: "purchase",
               acquired_at: order.purchased_at ?? new Date().toISOString(),
             },
