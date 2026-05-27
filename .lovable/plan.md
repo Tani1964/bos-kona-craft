@@ -1,141 +1,175 @@
 
-# Bos' Kọ́nà Craft Passport — Architecture Implementation Plan
+# Craft Passport — Behavior + Environment Intelligence (Final Integrated Plan)
 
-Locking in the three pillars you described: **(1) phone-based ownership auth**, **(2) NFC-only-on-tools care logging**, **(3) session-grouped Care Intelligence that feeds KFI without gamification**.
-
----
-
-## 1. Phone-based Passport Access
-
-**Goal:** universal QR → personalized passport via phone number lookup against ownership records.
-
-**DB changes**
-- `ownership_records` — add `owner_phone TEXT` (E.164), index it. Keep `owner_ref` as freeform secondary.
-- Storefront webhook (`/api/public/storefront-webhook`) already creates ownership rows on purchase — extend payload to accept `owner_phone` and persist it.
-
-**Auth flow (Supabase Phone OTP)**
-- Enable Phone auth provider (SMS OTP).
-- New route `/claim` — user enters phone, receives OTP, verifies.
-- On successful verify: server fn `getMyPassports({ phone })` returns all `assets` joined via `ownership_records.owner_phone = <verified phone>`.
-- If exactly one → redirect to `/p/$serial`. If multiple → picker. If none → "No purchases found, contact store".
-- Session stored client-side; gate personalized views behind `_owner` layout that checks verified phone matches an ownership record.
-
-**Public vs owner views on the passport**
-- Public (anyone with QR, no auth): Identity, Provenance, Atelier, Makers, Documentary, Drop story.
-- Owner-only (gated by verified phone): Ownership Timeline, KFI, Care Intelligence history, Longevity Simulator, Executive Access, Ecosystem.
+This builds on the prior plan (phone auth + NFC care tools + session grouping, already partially shipped: schema for `care_tools` / `care_events` / `care_sessions`, `ownership_records.owner_phone`, `/api/public/nfc-tap` endpoint). Below is everything new in the latest spec.
 
 ---
 
-## 2. NFC Care Tools — Backend
-
-**New tables**
+## 1. New DB schema
 
 ```
-care_tools
-  tool_id TEXT PK              -- e.g. "premium_brush_v1"
-  tool_name TEXT
-  tool_type TEXT               -- cleaning | finishing | sole | …
-  kfi_weight NUMERIC            -- contribution hint (not direct add)
-  active BOOLEAN
-  created_at
+wear_events
+  id              UUID PK
+  asset_id        FK assets
+  owner_phone     TEXT
+  started_at      TIMESTAMPTZ
+  ended_at        TIMESTAMPTZ NULL     -- closed on "Back Home" or auto-timeout
+  transport_mode  TEXT                  -- walking | car | transit
+  location_lat    NUMERIC
+  location_lng    NUMERIC
+  weather_snapshot JSONB                -- raw API payload (condition, temp, humidity)
+  rain_probability NUMERIC              -- 0–1, forecast over next 1–3h
+  effective_stress NUMERIC              -- computed (weather × time × transport factor)
+  created_at      TIMESTAMPTZ
 
-care_events
-  id UUID PK
-  asset_id UUID FK assets
-  owner_phone TEXT             -- whichever owner triggered it
-  tool_id TEXT FK care_tools
-  session_id UUID              -- grouping (see §3)
-  occurred_at TIMESTAMPTZ
-  raw_payload JSONB            -- forensic copy of NFC tap
-
-care_sessions
-  id UUID PK
-  asset_id UUID FK
-  owner_phone TEXT
-  started_at, ended_at TIMESTAMPTZ
-  status TEXT                  -- in_progress | completed | abandoned
-  tools_used TEXT[]            -- derived: [premium_brush_v1, microfiber_finish_v1]
-  classification TEXT           -- "Maintenance Session" | "Surface Clean" | …
+care_insights
+  id              UUID PK
+  asset_id        FK
+  owner_phone     TEXT
+  kind            TEXT                  -- post_wear | preventive | pre_wear_trigger
+  body            TEXT                  -- the contextual message
+  source_ref      JSONB                 -- {wear_event_id?, session_id?, weather?}
+  shown_at        TIMESTAMPTZ NULL
+  created_at      TIMESTAMPTZ
 ```
 
-**RLS**
-- `care_tools` — public read (catalog), admin write.
-- `care_events` / `care_sessions` — readable only to the owner whose verified phone matches `owner_phone`; admin read.
+RLS: admin read/write; owner-scoped reads via server functions that match verified phone.
 
-**Seeds**
-- `premium_brush_v1` (cleaning, +1)
-- `microfiber_finish_v1` (finishing, +0.5)
-- (placeholder, inactive) `sole_maintenance_v1`
+Reuse: `care_sessions` (already shipped) feeds maintenance signal into KFI.
 
 ---
 
-## 3. NFC Tap Ingestion + Session Grouping
+## 2. Passport access (post-activation)
 
-**Endpoint:** `POST /api/public/nfc-tap` (server route)
+- `/claim?serial=…` — first-time activation, scans box QR, enters + verifies phone via OTP. Writes phone onto the latest `ownership_records` row for that serial.
+- `/login` — owner login (phone OTP). After verify → `/me` shows all assets owned by that phone → tap → `/p/$serial`.
+- PWA: add `manifest.json`, service worker, "Add to Home Screen" prompt on first successful passport view. Box QR never required again.
 
-Payload (signed via shared secret in NFC URL or HMAC):
+**Owner gating**: `_owner` layout reads verified phone from supabase session; passport personalized tabs (Ownership, KFI, Care, Longevity, Out The Door) gated by it. Public tabs (Identity, Provenance, Atelier, Makers, Documentary) stay open.
+
+---
+
+## 3. Out The Door flow
+
 ```
-{ asset_serial, tool_id, owner_phone, tapped_at }
+[OUT THE DOOR] tap
+   → geolocation permission (browser API)
+   → server fn createWearEvent({ asset_id, lat, lng, transport_mode })
+       → server-side fetch weather API with stored key
+       → store snapshot + rain_probability
+       → if rain_probability > 0.4 → enqueue pre_wear_trigger care_insight
+       → return event_id + immediate "wear context" card
+   → UI shows: weather chip, transport chip, "Back Home" button
+[BACK HOME] tap (or 12h auto-close)
+   → closes wear_event, computes effective_stress, queues post_wear_insight if rain occurred
 ```
 
-**Session logic (server-side, single insert + RPC):**
-1. Validate signature + lookup asset + lookup `care_tool`.
-2. Find latest `care_sessions` for `(asset_id, owner_phone)` with `status='in_progress'` and `started_at > now() - interval '15 minutes'`.
-3. If none → create new session (status `in_progress`, started_at = tap time).
-4. Insert `care_events` row referencing that session.
-5. Close the session (status `completed`, classification computed) when either:
-   - both `cleaning` + `finishing` tools tapped → `"Completed Maintenance Session"`, OR
-   - 15-minute window elapses with only one tool → `"Partial Care Session"` (background job / lazy resolve on next read).
+Transport mode picker: 3 buttons (Walking / Car / Public Transport). Default inferred via stored last-choice + simple heuristic (speed if Geolocation watch returns velocity); user can override.
 
-This eliminates the "2 separate events" noise.
+**Stress formula** (initial, tunable):
+```
+weather_factor   = 1 + (rain_prob × 0.8) + (humidity_norm × 0.2)
+transport_factor = { walking: 1.0, transit: 0.6, car: 0.3 }
+effective_stress = weather_factor × duration_hours × transport_factor
+```
 
 ---
 
-## 4. KFI Signal Wiring (no gamification)
+## 4. Weather API integration
 
-KFI engine consumes **sessions**, not raw events.
+Server-only fetch (never expose key to client). Endpoint wrapper at `src/lib/weather.server.ts`:
 
-- New helper `computeKfiFromSessions(asset_id)` reads completed sessions over the asset's lifetime and produces:
-  - `consistency_score` — rolling cadence of completed sessions vs age_days.
-  - `recency_penalty` — days since last session.
-  - `stewardship_signal` — ratio of completed vs partial sessions.
-- Plug into existing `state-engine.ts` alongside `wears`, `nfc_scans` (which we'll deprecate as direct KFI input), `repairs`.
+```ts
+getWeather({ lat, lng }) → {
+  condition, temp_c, humidity, rain_prob_3h, raw
+}
+```
 
-No per-tap reward. No streaks. Trend-based only.
+Cached 10 min by `lat,lng` bucket (300m precision) to limit cost. Called only from server functions.
 
----
-
-## 5. Admin
-
-- Admin tab **"Care Tools"** — CRUD on `care_tools` catalog.
-- Admin view of `care_sessions` per asset (read-only audit).
-- Admin can manually link a phone to an `ownership_record` if the webhook missed it.
+**Provider**: pick one — see questions below.
 
 ---
 
-## 6. Public surfaces (owner-only)
+## 5. Longevity Simulator (refactor)
 
-- `/care` route → session-grouped timeline ("Maintenance Session · Mar 14 · brush + cloth").
-- KFI ring already exists — refactored to pull from session-derived signals.
-- Longevity Simulator (later) uses the same signals.
+New inputs (replacing the current static client mock):
+1. Wear frequency → count of `wear_events` over time.
+2. Maintenance behavior → completed `care_sessions` cadence.
+3. Material model → existing per-material curves (denim, leather, crepe), kept in code config.
+4. Environmental stress → sum of `effective_stress` from `wear_events`.
+5. Transport mix → ratio derived from `wear_events.transport_mode`.
 
----
-
-## Build order (suggested phases)
-
-1. **Phone auth + ownership lookup** (Supabase phone provider, `/claim` route, `_owner` gate, extend webhook with `owner_phone`).
-2. **Care tools + events + sessions schema** (+ seeds + RLS).
-3. **`/api/public/nfc-tap` endpoint** with session grouping.
-4. **Care Intelligence UI** (owner-only timeline reading from sessions).
-5. **KFI refactor** to consume session signals instead of raw counters.
-6. **Admin** care-tools CRUD + audit view.
+Output: `{ low_years, high_years, confidence }` from a server fn `computeLongevity(asset_id, owner_phone)`. UI renders a range, never a single number.
 
 ---
 
-## Open questions before I start phase 1
+## 6. KFI refactor (stewardship reflection)
 
-1. **NFC tap auth** — sign tap URLs with HMAC (`?sig=…`) so only your physical chips can post, or trust device-side phone session? Recommend HMAC + shared secret embedded in chip URL.
-2. **Phone OTP cost** — Supabase Phone Auth uses Twilio/MessageBird (you provide creds). OK to proceed and ask for Twilio creds when we hit phase 1, or prefer a different verification path (e.g. magic link to phone via WhatsApp Business)?
-3. **Multi-owner per asset** — resale/gifting. Treat ownership as "current owner = latest `ownership_records` row for that asset", and historical owners lose access? Or keep read-only access to prior owners?
+`computeKfi(asset_id, owner_phone)` blends:
+- `maintenance_consistency` — completed sessions per wear event ratio.
+- `care_responsiveness` — time-to-care after rain-exposed wear events.
+- `environmental_load` — contextual (does NOT punish; informs interpretation).
+- `cadence_health` — neither over-wear nor neglect.
 
-Confirm the plan + answer the 3 questions and I'll start with phase 1.
+Returns `{ score (0–100), trend: up|stable|down, components }`. No per-action points.
+
+---
+
+## 7. Care Intelligence Layer (contextual, not a route)
+
+Lives as a thin component `<CareWhisper />` rendered on the passport home + after Out The Door + after Back Home. Reads from `care_insights` filtered to last 7 days + unshown. Soft dismiss (marks `shown_at`). At most 1 visible at a time. Never push notifications in v1.
+
+Generation triggers:
+- Pre-wear: high rain_prob at Out The Door.
+- Post-wear: rain occurred during a wear event → "let AirForm air-dry".
+- Preventive: rolling 7d humidity high → "consider light conditioning".
+- Maintenance overdue: > 30d since last completed `care_session` AND ≥ N wears → "soft reminder".
+
+---
+
+## 8. Store decoupling
+
+- Remove any "Care Tips" surface from the storefront integration sample (`src/lib/storefront/boskona.ts` link only references product, no care content).
+- Webhook contract unchanged except already-added `owner_phone`.
+
+---
+
+## 9. Routes
+
+Public (no auth): `/`, `/p/$serial`, `/p/$serial/provenance|atelier|documentary|makers`.
+Owner (phone-verified): `/me`, `/p/$serial/ownership|kfi|care|longevity|wear` and the **Out The Door** action embedded on the passport home.
+Admin: existing `/_authenticated/admin` + new tabs for Care Tools catalog and Wear Events audit.
+
+---
+
+## 10. Build order
+
+1. **Decide blockers** (weather provider, OTP provider) — see below.
+2. Migration: `wear_events`, `care_insights` (+ RLS).
+3. `src/lib/weather.server.ts` + provider secret wired.
+4. Phone OTP enablement + `/claim` + `/login` + `_owner` gate + `/me` picker.
+5. Out The Door UI + `createWearEvent` / `closeWearEvent` server fns + insight generator.
+6. `<CareWhisper />` contextual rendering + Care Intelligence reads.
+7. Longevity + KFI refactor consuming `wear_events` + `care_sessions`.
+8. Admin Care Tools + Wear Events audit tabs.
+9. PWA manifest + install prompt.
+
+---
+
+## Decisions needed before I build
+
+Three things genuinely require your choice — I'll wait on these, then ship phase 2 onward without further prompting.
+
+1. **Weather API** — pick a provider so I request the right secret:
+   - OpenWeather (simplest, generous free tier)
+   - Tomorrow.io (best precipitation forecasting)
+   - WeatherAPI.com (good middle ground)
+
+2. **Phone OTP delivery** — Supabase Phone Auth needs an SMS provider. Twilio is the default; you'd connect Twilio via Lovable's connector (no manual creds copy). Confirm Twilio, or say if you prefer WhatsApp Business / MessageBird.
+
+3. **Multi-owner per asset** (resale/gifting) — when a new ownership_records row is added for an asset, does the previous owner:
+   - (a) lose all access, OR
+   - (b) keep read-only access to the historical timeline?
+
+Once you answer these three, I'll execute the rest of the plan without further questions.
