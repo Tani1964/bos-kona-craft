@@ -175,6 +175,39 @@ export type Database = {
           },
         ]
       }
+      care_insights: {
+        Row: {
+          asset_id: string
+          body: string
+          created_at: string
+          id: string
+          kind: string
+          owner_phone: string
+          shown_at: string | null
+          source_ref: Json | null
+        }
+        Insert: {
+          asset_id: string
+          body: string
+          created_at?: string
+          id?: string
+          kind: string
+          owner_phone: string
+          shown_at?: string | null
+          source_ref?: Json | null
+        }
+        Update: {
+          asset_id?: string
+          body?: string
+          created_at?: string
+          id?: string
+          kind?: string
+          owner_phone?: string
+          shown_at?: string | null
+          source_ref?: Json | null
+        }
+        Relationships: []
+      }
       care_sessions: {
         Row: {
           asset_id: string
@@ -469,6 +502,51 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      wear_events: {
+        Row: {
+          asset_id: string
+          created_at: string
+          effective_stress: number | null
+          ended_at: string | null
+          id: string
+          location_lat: number | null
+          location_lng: number | null
+          owner_phone: string
+          rain_probability: number | null
+          started_at: string
+          transport_mode: string
+          weather_snapshot: Json | null
+        }
+        Insert: {
+          asset_id: string
+          created_at?: string
+          effective_stress?: number | null
+          ended_at?: string | null
+          id?: string
+          location_lat?: number | null
+          location_lng?: number | null
+          owner_phone: string
+          rain_probability?: number | null
+          started_at?: string
+          transport_mode?: string
+          weather_snapshot?: Json | null
+        }
+        Update: {
+          asset_id?: string
+          created_at?: string
+          effective_stress?: number | null
+          ended_at?: string | null
+          id?: string
+          location_lat?: number | null
+          location_lng?: number | null
+          owner_phone?: string
+          rain_probability?: number | null
+          started_at?: string
+          transport_mode?: string
+          weather_snapshot?: Json | null
         }
         Relationships: []
       }
