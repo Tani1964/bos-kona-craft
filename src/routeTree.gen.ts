@@ -15,6 +15,7 @@ import { Route as ProvenanceRouteImport } from './routes/provenance'
 import { Route as OwnershipRouteImport } from './routes/ownership'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as DocumentaryRouteImport } from './routes/documentary'
+import { Route as ClaimRouteImport } from './routes/claim'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
@@ -51,6 +52,11 @@ const DocumentaryRoute = DocumentaryRouteImport.update({
   path: '/documentary',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ClaimRoute = ClaimRouteImport.update({
+  id: '/claim',
+  path: '/claim',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
@@ -79,6 +85,7 @@ const ApiPublicNfcTapRoute = ApiPublicNfcTapRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/claim': typeof ClaimRoute
   '/documentary': typeof DocumentaryRoute
   '/login': typeof LoginRoute
   '/ownership': typeof OwnershipRoute
@@ -91,6 +98,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/claim': typeof ClaimRoute
   '/documentary': typeof DocumentaryRoute
   '/login': typeof LoginRoute
   '/ownership': typeof OwnershipRoute
@@ -105,6 +113,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/claim': typeof ClaimRoute
   '/documentary': typeof DocumentaryRoute
   '/login': typeof LoginRoute
   '/ownership': typeof OwnershipRoute
@@ -119,6 +128,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/claim'
     | '/documentary'
     | '/login'
     | '/ownership'
@@ -131,6 +141,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/claim'
     | '/documentary'
     | '/login'
     | '/ownership'
@@ -144,6 +155,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/claim'
     | '/documentary'
     | '/login'
     | '/ownership'
@@ -158,6 +170,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  ClaimRoute: typeof ClaimRoute
   DocumentaryRoute: typeof DocumentaryRoute
   LoginRoute: typeof LoginRoute
   OwnershipRoute: typeof OwnershipRoute
@@ -210,6 +223,13 @@ declare module '@tanstack/react-router' {
       path: '/documentary'
       fullPath: '/documentary'
       preLoaderRoute: typeof DocumentaryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/claim': {
+      id: '/claim'
+      path: '/claim'
+      fullPath: '/claim'
+      preLoaderRoute: typeof ClaimRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -265,6 +285,7 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  ClaimRoute: ClaimRoute,
   DocumentaryRoute: DocumentaryRoute,
   LoginRoute: LoginRoute,
   OwnershipRoute: OwnershipRoute,
