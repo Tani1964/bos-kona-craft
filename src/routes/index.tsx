@@ -82,6 +82,7 @@ const FALLBACK_TELEMETRY: AssetTelemetry = {
 
 function Index() {
   const [careOpen, setCareOpen] = useState(false);
+  const [outOpen, setOutOpen] = useState(false);
   const { data: passport } = useSuspenseQuery(passportQueryOptions(DEFAULT_SERIAL));
 
   const t = (passport?.asset_telemetry as any) ?? null;
@@ -105,6 +106,24 @@ function Index() {
   const status = passport?.status ?? "New";
   const serial = passport?.serial ?? DEFAULT_SERIAL;
   const storeProductId = (passport as any)?.store_product_id as string | null | undefined;
+  const assetId = (passport as any)?.id as string | undefined;
+
+  const fetchOpenEvent = useServerFn(getOpenWearEvent);
+  const { data: openCtx } = useQuery({
+    queryKey: ["openWearEvent", assetId],
+    queryFn: () =>
+      assetId
+        ? fetchOpenEvent({ data: { asset_id: assetId } }).catch(() => ({
+            owner: false as const,
+            event: null,
+          }))
+        : Promise.resolve({ owner: false as const, event: null }),
+    enabled: !!assetId,
+    refetchOnWindowFocus: true,
+  });
+  const isOwner = !!openCtx?.owner;
+  const openEvent = openCtx?.event ?? null;
+
 
 
   return (
