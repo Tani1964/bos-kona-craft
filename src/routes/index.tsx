@@ -261,10 +261,30 @@ function Index() {
         </div>
 
         <div className="flex gap-3">
-          <button className="flex h-14 flex-1 items-center justify-center gap-2 rounded-lg bg-bronze font-bold text-stone-950 transition active:scale-[0.98]">
-            <Footprints className="h-5 w-5" />
-            <span className="text-sm tracking-wide">Out the Door</span>
-          </button>
+          {isOwner ? (
+            <button
+              onClick={() => setOutOpen(true)}
+              className={`flex h-14 flex-1 items-center justify-center gap-2 rounded-lg font-bold transition active:scale-[0.98] ${
+                openEvent
+                  ? "border border-bronze/40 bg-bronze/15 text-bronze"
+                  : "bg-bronze text-stone-950"
+              }`}
+            >
+              <Footprints className="h-5 w-5" />
+              <span className="text-sm tracking-wide">
+                {openEvent ? "Back Home" : "Out the Door"}
+              </span>
+            </button>
+          ) : (
+            <Link
+              to="/claim"
+              search={{ serial } as never}
+              className="flex h-14 flex-1 items-center justify-center gap-2 rounded-lg bg-bronze font-bold text-stone-950 transition active:scale-[0.98]"
+            >
+              <Footprints className="h-5 w-5" />
+              <span className="text-sm tracking-wide">Out the Door</span>
+            </Link>
+          )}
           <button
             onClick={() => setCareOpen(true)}
             className="flex h-14 flex-1 items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/5 font-bold text-foreground transition active:scale-[0.98]"
@@ -276,9 +296,18 @@ function Index() {
       </motion.footer>
 
       <CareSheet open={careOpen} onClose={() => setCareOpen(false)} />
+      {assetId && (
+        <OutTheDoorSheet
+          open={outOpen}
+          onClose={() => setOutOpen(false)}
+          assetId={assetId}
+          openEvent={openEvent as any}
+        />
+      )}
     </div>
   );
 }
+
 
 function Stat({
   label,
