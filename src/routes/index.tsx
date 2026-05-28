@@ -1,5 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useSuspenseQuery, useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import {
@@ -15,6 +16,9 @@ import { productUrl } from "@/lib/storefront/boskona";
 import { KfiRing } from "@/components/passport/KfiRing";
 import { ModuleCard } from "@/components/passport/ModuleCard";
 import { CareSheet } from "@/components/passport/CareSheet";
+import { OutTheDoorSheet } from "@/components/passport/OutTheDoorSheet";
+import { CareWhisper } from "@/components/passport/CareWhisper";
+import { getOpenWearEvent } from "@/lib/owner.functions";
 import { resolveFeed, type ThumbnailStyle } from "@/lib/passport/ecosystem";
 import {
   computeKfi,
