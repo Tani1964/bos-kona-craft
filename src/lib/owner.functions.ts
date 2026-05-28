@@ -140,6 +140,38 @@ export const listMyAssets = createServerFn({ method: "GET" }).handler(async () =
   return { phone, assets: owned };
 });
 
+// Current open wear event for this asset (if owner is signed in & owns it).
+export const getOpenWearEvent = createServerFn({ method: "GET" })
+  .inputValidator((d: { asset_id: string }) =>
+    z.object({ asset_id: z.string().uuid() }).parse(d),
+  )
+  .handler(async ({ data }) => {
+    const session = await useSession<OwnerSession>(sessionConfig());
+    const phone = session.data.phone;
+    if (!phone) return { owner: false as const, event: null };
+    // verify still latest owner
+    const { data: latest } = await supabaseAdmin
+      .from("ownership_records")
+      .select("owner_phone")
+      .eq("asset_id", data.asset_id)
+      .order("acquired_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (!latest || latest.owner_phone !== phone) {
+      return { owner: false as const, event: null };
+    }
+    const { data: ev } = await supabaseAdmin
+      .from("wear_events")
+      .select("id, started_at, transport_mode, rain_probability, weather_snapshot")
+      .eq("asset_id", data.asset_id)
+      .eq("owner_phone", phone)
+      .is("ended_at", null)
+      .order("started_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    return { owner: true as const, event: ev ?? null };
+  });
+
 // ── Wear events ───────────────────────────────────────────────
 
 export const createWearEvent = createServerFn({ method: "POST" })
