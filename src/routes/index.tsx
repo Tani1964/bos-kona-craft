@@ -1,5 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useSuspenseQuery, useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import {
@@ -15,6 +16,9 @@ import { productUrl } from "@/lib/storefront/boskona";
 import { KfiRing } from "@/components/passport/KfiRing";
 import { ModuleCard } from "@/components/passport/ModuleCard";
 import { CareSheet } from "@/components/passport/CareSheet";
+import { OutTheDoorSheet } from "@/components/passport/OutTheDoorSheet";
+import { CareWhisper } from "@/components/passport/CareWhisper";
+import { getOpenWearEvent } from "@/lib/owner.functions";
 import { resolveFeed, type ThumbnailStyle } from "@/lib/passport/ecosystem";
 import {
   computeKfi,
@@ -78,6 +82,7 @@ const FALLBACK_TELEMETRY: AssetTelemetry = {
 
 function Index() {
   const [careOpen, setCareOpen] = useState(false);
+  const [outOpen, setOutOpen] = useState(false);
   const { data: passport } = useSuspenseQuery(passportQueryOptions(DEFAULT_SERIAL));
 
   const t = (passport?.asset_telemetry as any) ?? null;
@@ -101,6 +106,24 @@ function Index() {
   const status = passport?.status ?? "New";
   const serial = passport?.serial ?? DEFAULT_SERIAL;
   const storeProductId = (passport as any)?.store_product_id as string | null | undefined;
+  const assetId = (passport as any)?.id as string | undefined;
+
+  const fetchOpenEvent = useServerFn(getOpenWearEvent);
+  const { data: openCtx } = useQuery({
+    queryKey: ["openWearEvent", assetId],
+    queryFn: () =>
+      assetId
+        ? fetchOpenEvent({ data: { asset_id: assetId } }).catch(() => ({
+            owner: false as const,
+            event: null,
+          }))
+        : Promise.resolve({ owner: false as const, event: null }),
+    enabled: !!assetId,
+    refetchOnWindowFocus: true,
+  });
+  const isOwner = !!openCtx?.owner;
+  const openEvent = openCtx?.event ?? null;
+
 
 
   return (
@@ -162,6 +185,10 @@ function Index() {
             </span>
           </motion.div>
         </section>
+
+        {assetId && isOwner && <CareWhisper assetId={assetId} />}
+
+
 
         <section className="mt-8 px-5">
           <KfiRing score={kfi.score} stage={stage} />
@@ -234,10 +261,30 @@ function Index() {
         </div>
 
         <div className="flex gap-3">
-          <button className="flex h-14 flex-1 items-center justify-center gap-2 rounded-lg bg-bronze font-bold text-stone-950 transition active:scale-[0.98]">
-            <Footprints className="h-5 w-5" />
-            <span className="text-sm tracking-wide">Out the Door</span>
-          </button>
+          {isOwner ? (
+            <button
+              onClick={() => setOutOpen(true)}
+              className={`flex h-14 flex-1 items-center justify-center gap-2 rounded-lg font-bold transition active:scale-[0.98] ${
+                openEvent
+                  ? "border border-bronze/40 bg-bronze/15 text-bronze"
+                  : "bg-bronze text-stone-950"
+              }`}
+            >
+              <Footprints className="h-5 w-5" />
+              <span className="text-sm tracking-wide">
+                {openEvent ? "Back Home" : "Out the Door"}
+              </span>
+            </button>
+          ) : (
+            <Link
+              to="/claim"
+              search={{ serial } as never}
+              className="flex h-14 flex-1 items-center justify-center gap-2 rounded-lg bg-bronze font-bold text-stone-950 transition active:scale-[0.98]"
+            >
+              <Footprints className="h-5 w-5" />
+              <span className="text-sm tracking-wide">Out the Door</span>
+            </Link>
+          )}
           <button
             onClick={() => setCareOpen(true)}
             className="flex h-14 flex-1 items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/5 font-bold text-foreground transition active:scale-[0.98]"
@@ -249,9 +296,18 @@ function Index() {
       </motion.footer>
 
       <CareSheet open={careOpen} onClose={() => setCareOpen(false)} />
+      {assetId && (
+        <OutTheDoorSheet
+          open={outOpen}
+          onClose={() => setOutOpen(false)}
+          assetId={assetId}
+          openEvent={openEvent as any}
+        />
+      )}
     </div>
   );
 }
+
 
 function Stat({
   label,
