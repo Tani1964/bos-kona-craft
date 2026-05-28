@@ -186,6 +186,10 @@ function Index() {
           </motion.div>
         </section>
 
+        {assetId && isOwner && <CareWhisper assetId={assetId} />}
+
+
+
         <section className="mt-8 px-5">
           <KfiRing score={kfi.score} stage={stage} />
 
