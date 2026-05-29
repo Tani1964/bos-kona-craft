@@ -18,9 +18,9 @@ import { ModuleCard } from "@/components/passport/ModuleCard";
 import { CareSheet } from "@/components/passport/CareSheet";
 import { OutTheDoorSheet } from "@/components/passport/OutTheDoorSheet";
 import { CareWhisper } from "@/components/passport/CareWhisper";
-import { getOpenWearEvent } from "@/lib/owner.functions";
 import { OwnerChip } from "@/components/passport/OwnerChip";
 import { getOpenWearEvent } from "@/lib/owner.functions";
+import { resolveFeed, type ThumbnailStyle } from "@/lib/passport/ecosystem";
 import {
   computeKfi,
   deriveStage,
