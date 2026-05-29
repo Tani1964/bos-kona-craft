@@ -54,6 +54,63 @@ export const getPassport = createServerFn({ method: "GET" })
     return { ...asset, video_url: videoUrl };
   });
 
+// Live behavior+environment signals derived from wear_events + care_sessions.
+// Public read (no PII returned); consumed by the KFI / Longevity engine.
+export const getLiveSignals = createServerFn({ method: "GET" })
+  .inputValidator((d: { asset_id: string }) =>
+    z.object({ asset_id: z.string().uuid() }).parse(d),
+  )
+  .handler(async ({ data }) => {
+    const ninetyDaysAgo = new Date(
+      Date.now() - 90 * 24 * 60 * 60 * 1000,
+    ).toISOString();
+
+    const [{ data: wear }, { data: care }] = await Promise.all([
+      supabaseAdmin
+        .from("wear_events")
+        .select("started_at, ended_at, effective_stress")
+        .eq("asset_id", data.asset_id)
+        .gte("started_at", ninetyDaysAgo)
+        .order("started_at", { ascending: false }),
+      supabaseAdmin
+        .from("care_sessions")
+        .select("started_at, ended_at, status")
+        .eq("asset_id", data.asset_id)
+        .gte("started_at", ninetyDaysAgo)
+        .order("started_at", { ascending: false }),
+    ]);
+
+    const wearEvents = wear?.length ?? 0;
+    const effectiveStress = (wear ?? []).reduce(
+      (acc, w: any) => acc + (Number(w.effective_stress) || 0),
+      0,
+    );
+    const lastWear = wear?.[0]?.started_at as string | undefined;
+
+    const completedCare = (care ?? []).filter(
+      (c: any) => c.status === "complete" || c.ended_at,
+    );
+    const careSessions = completedCare.length;
+    const lastCare = completedCare[0]?.ended_at ?? completedCare[0]?.started_at;
+
+    const now = Date.now();
+    const daysSinceWear = lastWear
+      ? Math.floor((now - new Date(lastWear).getTime()) / 86400000)
+      : null;
+    const daysSinceCare = lastCare
+      ? Math.floor((now - new Date(lastCare).getTime()) / 86400000)
+      : null;
+
+    return {
+      wearEvents,
+      effectiveStress: +effectiveStress.toFixed(2),
+      careSessions,
+      daysSinceWear,
+      daysSinceCare,
+    };
+  });
+
+
 
 // ── Admin: list / create / detail ─────────────────────────────
 
