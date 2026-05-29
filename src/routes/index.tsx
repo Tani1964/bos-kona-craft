@@ -20,6 +20,7 @@ import { OutTheDoorSheet } from "@/components/passport/OutTheDoorSheet";
 import { CareWhisper } from "@/components/passport/CareWhisper";
 import { OwnerChip } from "@/components/passport/OwnerChip";
 import * as ownerFns from "@/lib/owner.functions";
+import { getLiveSignals } from "@/lib/passport.functions";
 import { resolveFeed, type ThumbnailStyle } from "@/lib/passport/ecosystem";
 import {
   computeKfi,
@@ -85,17 +86,33 @@ function Index() {
   const [careOpen, setCareOpen] = useState(false);
   const [outOpen, setOutOpen] = useState(false);
   const { data: passport } = useSuspenseQuery(passportQueryOptions(DEFAULT_SERIAL));
-
   const t = (passport?.asset_telemetry as any) ?? null;
-  const telemetry: AssetTelemetry = t
-    ? {
-        wears: t.wears ?? 0,
-        careEntries: t.care_entries ?? 0,
-        nfcScans: t.nfc_scans ?? 0,
-        ageDays: t.age_days ?? 0,
-        repairs: t.repairs ?? 0,
-      }
-    : FALLBACK_TELEMETRY;
+  const assetIdEarly = (passport as any)?.id as string | undefined;
+
+  const fetchLive = useServerFn(getLiveSignals);
+  const { data: live } = useQuery({
+    queryKey: ["liveSignals", assetIdEarly],
+    queryFn: () =>
+      assetIdEarly
+        ? fetchLive({ data: { asset_id: assetIdEarly } }).catch(() => null)
+        : Promise.resolve(null),
+    enabled: !!assetIdEarly,
+    refetchOnWindowFocus: true,
+    staleTime: 30_000,
+  });
+
+  const telemetry: AssetTelemetry = {
+    wears: t?.wears ?? 0,
+    careEntries: t?.care_entries ?? 0,
+    nfcScans: t?.nfc_scans ?? 0,
+    ageDays: t?.age_days ?? 0,
+    repairs: t?.repairs ?? 0,
+    wearEvents: live?.wearEvents,
+    effectiveStress: live?.effectiveStress,
+    careSessions: live?.careSessions,
+    daysSinceCare: live?.daysSinceCare,
+    daysSinceWear: live?.daysSinceWear,
+  };
 
   const kfi = computeKfi(telemetry);
   const stage = deriveStage(kfi.score);
