@@ -19,7 +19,8 @@ import { CareSheet } from "@/components/passport/CareSheet";
 import { OutTheDoorSheet } from "@/components/passport/OutTheDoorSheet";
 import { CareWhisper } from "@/components/passport/CareWhisper";
 import { getOpenWearEvent } from "@/lib/owner.functions";
-import { resolveFeed, type ThumbnailStyle } from "@/lib/passport/ecosystem";
+import { OwnerChip } from "@/components/passport/OwnerChip";
+import { getOpenWearEvent } from "@/lib/owner.functions";
 import {
   computeKfi,
   deriveStage,
