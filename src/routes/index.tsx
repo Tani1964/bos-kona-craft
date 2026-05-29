@@ -119,7 +119,6 @@ function Index() {
   const lifespan = estimateLifespanYears(telemetry);
   const recommendation = deriveRecommendation(telemetry);
   const feed = resolveFeed(telemetry);
-  const feed = resolveFeed(telemetry);
 
   const modelName = passport?.model_name ?? "—";
   const status = passport?.status ?? "New";
