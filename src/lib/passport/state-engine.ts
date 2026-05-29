@@ -6,9 +6,9 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 export interface AssetTelemetry {
-  /** Total recorded wears */
+  /** Legacy/manual wear count (used as fallback when no wear_events exist) */
   wears: number;
-  /** Care log entries (condition, polish, repair, …) */
+  /** Manual care log entries (admin-set) — fallback only */
   careEntries: number;
   /** NFC authentication scans */
   nfcScans: number;
@@ -16,6 +16,18 @@ export interface AssetTelemetry {
   ageDays: number;
   /** Atelier-grade repairs performed */
   repairs: number;
+
+  // ── Live signals (Phase 4 — wear_events + care_sessions) ──────
+  /** Recorded wear sessions in the last 90 days */
+  wearEvents?: number;
+  /** Sum of effective_stress over recent wear_events (0..n) */
+  effectiveStress?: number;
+  /** Completed care sessions in the last 90 days */
+  careSessions?: number;
+  /** Days since the last completed care session (null = never) */
+  daysSinceCare?: number | null;
+  /** Days since the last wear session (null = never) */
+  daysSinceWear?: number | null;
 }
 
 export type LifecycleStage =
@@ -29,6 +41,7 @@ export interface KfiBreakdown {
   base: number;
   wearImpact: number; // negative
   ageImpact: number; // negative
+  stressImpact: number; // negative — environmental
   careImpact: number; // positive
   repairImpact: number; // positive
   nfcImpact: number; // positive (provenance trust)
@@ -38,20 +51,55 @@ export interface KfiBreakdown {
 const clamp = (n: number, min = 0, max = 100) =>
   Math.max(min, Math.min(max, n));
 
-/** Heart of the engine — Kọ́nà Formula Index. */
+/** Heart of the engine — Kọ́nà Formula Index.
+ *  When live signals exist (wearEvents / effectiveStress / careSessions) they
+ *  take precedence over the manual legacy counters. */
 export function computeKfi(t: AssetTelemetry): KfiBreakdown {
   const base = 100;
-  const wearImpact = -Math.min(t.wears * 0.5, 40);
-  const ageImpact = -Math.min((t.ageDays / 365) * 1.2, 18);
-  const careImpact = Math.min(t.careEntries * 2.5, 25);
+
+  // Wear: prefer real wear_events count, fall back to manual wears.
+  const wearsForCalc =
+    t.wearEvents && t.wearEvents > 0 ? t.wearEvents : t.wears;
+  const wearImpact = -Math.min(wearsForCalc * 0.6, 30);
+
+  // Environmental stress accumulated from wear_events (rain, transport, duration).
+  const stress = t.effectiveStress ?? 0;
+  const stressImpact = -Math.min(stress * 6, 25);
+
+  const ageImpact = -Math.min((t.ageDays / 365) * 1.2, 15);
+
+  // Care: prefer real care_sessions, fall back to manual careEntries.
+  const careCount =
+    t.careSessions && t.careSessions > 0 ? t.careSessions : t.careEntries;
+  let careImpact = Math.min(careCount * 3, 25);
+  // Penalise stale care if we know the last care date.
+  if (t.daysSinceCare != null && t.daysSinceCare > 45) {
+    careImpact = Math.max(0, careImpact - Math.min((t.daysSinceCare - 45) / 10, 10));
+  }
+
   const repairImpact = Math.min(t.repairs * 4, 16);
   const nfcImpact = Math.min(t.nfcScans * 0.4, 8);
 
   const score = clamp(
-    base + wearImpact + ageImpact + careImpact + repairImpact + nfcImpact,
+    base +
+      wearImpact +
+      stressImpact +
+      ageImpact +
+      careImpact +
+      repairImpact +
+      nfcImpact,
   );
 
-  return { base, wearImpact, ageImpact, careImpact, repairImpact, nfcImpact, score };
+  return {
+    base,
+    wearImpact,
+    stressImpact,
+    ageImpact,
+    careImpact,
+    repairImpact,
+    nfcImpact,
+    score,
+  };
 }
 
 export function deriveStage(score: number): LifecycleStage {
@@ -63,9 +111,14 @@ export function deriveStage(score: number): LifecycleStage {
 }
 
 export function estimateLifespanYears(t: AssetTelemetry): number {
-  const wearsPerYear = Math.max(t.wears / Math.max(t.ageDays / 365, 0.1), 1);
+  const wearsForCalc =
+    t.wearEvents && t.wearEvents > 0 ? t.wearEvents : t.wears;
+  const yearsLived = Math.max(t.ageDays / 365, 0.1);
+  const wearsPerYear = Math.max(wearsForCalc / yearsLived, 1);
+  // Stress accelerates decay: each unit of stress ≈ 1.4x wear pressure.
+  const stressMult = 1 + Math.min((t.effectiveStress ?? 0) * 0.05, 0.6);
   const remainingScore = computeKfi(t).score;
-  return +(remainingScore / (wearsPerYear * 1.5)).toFixed(1);
+  return +(remainingScore / (wearsPerYear * 1.5 * stressMult)).toFixed(1);
 }
 
 export type Recommendation = {
@@ -76,7 +129,30 @@ export type Recommendation = {
 };
 
 export function deriveRecommendation(t: AssetTelemetry): Recommendation {
-  const wearsSinceCare = t.wears - t.careEntries * 5;
+  // Stale-care signal (live) takes priority.
+  if (t.daysSinceCare != null && t.daysSinceCare > 45) {
+    return {
+      id: "condition",
+      title: "Condition Leather",
+      reason: `${t.daysSinceCare} days since last care session`,
+      urgency: t.daysSinceCare > 75 ? "high" : "medium",
+    };
+  }
+  // High accumulated stress → recommend rest & inspection.
+  if ((t.effectiveStress ?? 0) > 3) {
+    return {
+      id: "rest-stress",
+      title: "Rest & Air-Dry",
+      reason: "Recent wear sessions exposed the piece to weather stress",
+      urgency: "medium",
+    };
+  }
+  // Legacy fallback when no live signals.
+  const wearsForCalc =
+    t.wearEvents && t.wearEvents > 0 ? t.wearEvents : t.wears;
+  const careCount =
+    t.careSessions && t.careSessions > 0 ? t.careSessions : t.careEntries;
+  const wearsSinceCare = wearsForCalc - careCount * 5;
   if (wearsSinceCare > 12) {
     return {
       id: "condition",
