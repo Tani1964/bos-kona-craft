@@ -137,9 +137,12 @@ function Index() {
           <span className="font-mono text-[11px] uppercase tracking-[0.3em] text-foreground">
             Bos' Kọ́nà
           </span>
-          <button className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 transition active:scale-95">
-            <ShoppingBag className="h-4 w-4 text-foreground" />
-          </button>
+          <div className="flex items-center gap-2">
+            <OwnerChip />
+            <button className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 transition active:scale-95">
+              <ShoppingBag className="h-4 w-4 text-foreground" />
+            </button>
+          </div>
         </motion.header>
 
         <section className="px-5 pt-4">
