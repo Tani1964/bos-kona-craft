@@ -109,7 +109,7 @@ function Index() {
   const storeProductId = (passport as any)?.store_product_id as string | null | undefined;
   const assetId = (passport as any)?.id as string | undefined;
 
-  const fetchOpenEvent = useServerFn(getOpenWearEvent);
+  const fetchOpenEvent = useServerFn(ownerFns.getOpenWearEvent);
   const { data: openCtx } = useQuery({
     queryKey: ["openWearEvent", assetId],
     queryFn: () =>
