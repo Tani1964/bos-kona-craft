@@ -13,6 +13,7 @@ import { Route as TimelineRouteImport } from './routes/timeline'
 import { Route as SystemRouteImport } from './routes/system'
 import { Route as ProvenanceRouteImport } from './routes/provenance'
 import { Route as OwnershipRouteImport } from './routes/ownership'
+import { Route as MeRouteImport } from './routes/me'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as DocumentaryRouteImport } from './routes/documentary'
 import { Route as ClaimRouteImport } from './routes/claim'
@@ -40,6 +41,11 @@ const ProvenanceRoute = ProvenanceRouteImport.update({
 const OwnershipRoute = OwnershipRouteImport.update({
   id: '/ownership',
   path: '/ownership',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MeRoute = MeRouteImport.update({
+  id: '/me',
+  path: '/me',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -88,6 +94,7 @@ export interface FileRoutesByFullPath {
   '/claim': typeof ClaimRoute
   '/documentary': typeof DocumentaryRoute
   '/login': typeof LoginRoute
+  '/me': typeof MeRoute
   '/ownership': typeof OwnershipRoute
   '/provenance': typeof ProvenanceRoute
   '/system': typeof SystemRoute
@@ -101,6 +108,7 @@ export interface FileRoutesByTo {
   '/claim': typeof ClaimRoute
   '/documentary': typeof DocumentaryRoute
   '/login': typeof LoginRoute
+  '/me': typeof MeRoute
   '/ownership': typeof OwnershipRoute
   '/provenance': typeof ProvenanceRoute
   '/system': typeof SystemRoute
@@ -116,6 +124,7 @@ export interface FileRoutesById {
   '/claim': typeof ClaimRoute
   '/documentary': typeof DocumentaryRoute
   '/login': typeof LoginRoute
+  '/me': typeof MeRoute
   '/ownership': typeof OwnershipRoute
   '/provenance': typeof ProvenanceRoute
   '/system': typeof SystemRoute
@@ -131,6 +140,7 @@ export interface FileRouteTypes {
     | '/claim'
     | '/documentary'
     | '/login'
+    | '/me'
     | '/ownership'
     | '/provenance'
     | '/system'
@@ -144,6 +154,7 @@ export interface FileRouteTypes {
     | '/claim'
     | '/documentary'
     | '/login'
+    | '/me'
     | '/ownership'
     | '/provenance'
     | '/system'
@@ -158,6 +169,7 @@ export interface FileRouteTypes {
     | '/claim'
     | '/documentary'
     | '/login'
+    | '/me'
     | '/ownership'
     | '/provenance'
     | '/system'
@@ -173,6 +185,7 @@ export interface RootRouteChildren {
   ClaimRoute: typeof ClaimRoute
   DocumentaryRoute: typeof DocumentaryRoute
   LoginRoute: typeof LoginRoute
+  MeRoute: typeof MeRoute
   OwnershipRoute: typeof OwnershipRoute
   ProvenanceRoute: typeof ProvenanceRoute
   SystemRoute: typeof SystemRoute
@@ -209,6 +222,13 @@ declare module '@tanstack/react-router' {
       path: '/ownership'
       fullPath: '/ownership'
       preLoaderRoute: typeof OwnershipRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/me': {
+      id: '/me'
+      path: '/me'
+      fullPath: '/me'
+      preLoaderRoute: typeof MeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -288,6 +308,7 @@ const rootRouteChildren: RootRouteChildren = {
   ClaimRoute: ClaimRoute,
   DocumentaryRoute: DocumentaryRoute,
   LoginRoute: LoginRoute,
+  MeRoute: MeRoute,
   OwnershipRoute: OwnershipRoute,
   ProvenanceRoute: ProvenanceRoute,
   SystemRoute: SystemRoute,
@@ -298,13 +319,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
