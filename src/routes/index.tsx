@@ -19,7 +19,7 @@ import { CareSheet } from "@/components/passport/CareSheet";
 import { OutTheDoorSheet } from "@/components/passport/OutTheDoorSheet";
 import { CareWhisper } from "@/components/passport/CareWhisper";
 import { OwnerChip } from "@/components/passport/OwnerChip";
-import { getOpenWearEvent } from "@/lib/owner.functions";
+import * as ownerFns from "@/lib/owner.functions";
 import { resolveFeed, type ThumbnailStyle } from "@/lib/passport/ecosystem";
 import {
   computeKfi,
@@ -109,7 +109,7 @@ function Index() {
   const storeProductId = (passport as any)?.store_product_id as string | null | undefined;
   const assetId = (passport as any)?.id as string | undefined;
 
-  const fetchOpenEvent = useServerFn(getOpenWearEvent);
+  const fetchOpenEvent = useServerFn(ownerFns.getOpenWearEvent);
   const { data: openCtx } = useQuery({
     queryKey: ["openWearEvent", assetId],
     queryFn: () =>
