@@ -28,7 +28,8 @@ function ClaimPage() {
     try {
       const res = await claim({ data: { serial: serial.trim(), phone: phone.trim() } });
       toast.success("Passport unlocked");
-      navigate({ to: "/", search: { serial: res.serial } as never });
+      void res;
+      navigate({ to: "/" });
     } catch (err: any) {
       toast.error(err?.message ?? "Could not open passport");
     } finally {
