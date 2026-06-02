@@ -346,6 +346,70 @@ export const claimAdminIfNone = createServerFn({ method: "POST" })
     return { granted: true };
   });
 
+// ── Admin: ownership records ──────────────────────────────────
+
+export const adminListOwnership = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { asset_id: string }) =>
+    z.object({ asset_id: z.string().uuid() }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { data: rows, error } = await supabaseAdmin
+      .from("ownership_records")
+      .select("id, store_order_id, owner_ref, owner_phone, event_type, acquired_at, notes")
+      .eq("asset_id", data.asset_id)
+      .order("acquired_at", { ascending: false });
+    if (error) throw new Error(error.message);
+    return rows ?? [];
+  });
+
+export const adminAddOwnership = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: any) =>
+    z
+      .object({
+        asset_id: z.string().uuid(),
+        owner_phone: z
+          .string()
+          .trim()
+          .regex(/^\+[1-9]\d{6,14}$/, "Phone must be E.164")
+          .nullable()
+          .optional(),
+        owner_ref: z.string().max(120).nullable().optional(),
+        store_order_id: z.string().max(120).nullable().optional(),
+        event_type: z.enum(["purchase", "transfer", "resale", "gift"]),
+        notes: z.string().max(500).nullable().optional(),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { error } = await supabaseAdmin.from("ownership_records").insert({
+      asset_id: data.asset_id,
+      owner_phone: data.owner_phone || null,
+      owner_ref: data.owner_ref || null,
+      store_order_id: data.store_order_id || null,
+      event_type: data.event_type,
+      notes: data.notes || null,
+    });
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const adminDeleteOwnership = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { error } = await supabaseAdmin
+      .from("ownership_records")
+      .delete()
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
 export const isCurrentUserAdmin = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
