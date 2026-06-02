@@ -588,3 +588,138 @@ function ReadOnlyTelemetry({ asset }: { asset: any }) {
     </div>
   );
 }
+
+function OwnershipTab({ asset }: { asset: any }) {
+  const qc = useQueryClient();
+  const { data: records, isLoading } = useQuery({
+    queryKey: ["admin", "ownership", asset.id],
+    queryFn: () => adminListOwnership({ data: { asset_id: asset.id } }),
+  });
+  const [form, setForm] = useState({
+    owner_phone: "",
+    owner_ref: "",
+    store_order_id: "",
+    event_type: "transfer" as "purchase" | "transfer" | "resale" | "gift",
+    notes: "",
+  });
+  const add = useMutation({
+    mutationFn: (d: any) => adminAddOwnership({ data: d }),
+    onSuccess: () => {
+      toast.success("Ownership record added — previous owner access revoked");
+      qc.invalidateQueries({ queryKey: ["admin", "ownership", asset.id] });
+      setForm({ owner_phone: "", owner_ref: "", store_order_id: "", event_type: "transfer", notes: "" });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+  const del = useMutation({
+    mutationFn: (id: string) => adminDeleteOwnership({ data: { id } }),
+    onSuccess: () => {
+      toast.success("Record removed");
+      qc.invalidateQueries({ queryKey: ["admin", "ownership", asset.id] });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const current = records?.[0];
+
+  return (
+    <div className="max-w-3xl space-y-6">
+      <div className="rounded-xl border border-bronze/30 bg-gradient-to-br from-bronze/10 to-transparent p-4">
+        <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-bronze">Current Owner</p>
+        {isLoading ? (
+          <p className="mt-2 font-mono text-xs text-muted-foreground">Loading…</p>
+        ) : current ? (
+          <div className="mt-2">
+            <p className="font-serif text-lg">{current.owner_ref ?? "Anonymous"}</p>
+            <p className="font-mono text-[11px] text-muted-foreground">
+              {current.owner_phone ?? "—"} · {current.event_type} ·{" "}
+              {new Date(current.acquired_at).toLocaleDateString()}
+            </p>
+          </div>
+        ) : (
+          <p className="mt-2 font-mono text-[11px] text-muted-foreground">No ownership records yet.</p>
+        )}
+      </div>
+
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          add.mutate({
+            asset_id: asset.id,
+            owner_phone: form.owner_phone.trim() || null,
+            owner_ref: form.owner_ref.trim() || null,
+            store_order_id: form.store_order_id.trim() || null,
+            event_type: form.event_type,
+            notes: form.notes.trim() || null,
+          });
+        }}
+        className="grid gap-3 rounded-xl border border-white/10 bg-white/5 p-4"
+      >
+        <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
+          Transfer / Add owner
+        </p>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {field("Owner phone (E.164, e.g. +2348012345678)",
+            <input className={inputCls} value={form.owner_phone} onChange={(e) => setForm({ ...form, owner_phone: e.target.value })} placeholder="+234..." />
+          )}
+          {field("Owner name / reference",
+            <input className={inputCls} value={form.owner_ref} onChange={(e) => setForm({ ...form, owner_ref: e.target.value })} />
+          )}
+          {field("Store order ID (optional)",
+            <input className={inputCls} value={form.store_order_id} onChange={(e) => setForm({ ...form, store_order_id: e.target.value })} />
+          )}
+          {field("Event type",
+            <select className={inputCls} value={form.event_type} onChange={(e) => setForm({ ...form, event_type: e.target.value as any })}>
+              <option value="purchase">Purchase</option>
+              <option value="transfer">Transfer</option>
+              <option value="resale">Resale</option>
+              <option value="gift">Gift</option>
+            </select>
+          )}
+        </div>
+        {field("Notes", <textarea className={inputCls + " min-h-[60px]"} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />)}
+        <button
+          disabled={add.isPending}
+          className="inline-flex items-center gap-2 self-start rounded-lg bg-bronze px-4 py-2 text-sm font-bold text-stone-950 disabled:opacity-50"
+        >
+          <Plus className="h-4 w-4" /> {add.isPending ? "Saving…" : "Record ownership event"}
+        </button>
+        <p className="font-mono text-[10px] text-muted-foreground/80">
+          Adding a record makes this phone the latest owner. Previous owner loses passport access immediately.
+        </p>
+      </form>
+
+      <div>
+        <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
+          Ledger
+        </p>
+        <ul className="space-y-2">
+          {records?.map((r: any) => (
+            <li key={r.id} className="flex items-start justify-between gap-3 rounded-lg border border-white/10 bg-white/[0.02] p-3">
+              <div>
+                <p className="font-serif text-sm">{r.owner_ref ?? "Anonymous"}</p>
+                <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                  {r.event_type} · {r.owner_phone ?? "—"} · {new Date(r.acquired_at).toLocaleDateString()}
+                </p>
+                {r.notes && <p className="mt-1 font-serif text-xs text-muted-foreground">{r.notes}</p>}
+              </div>
+              <button
+                onClick={() => del.mutate(r.id)}
+                disabled={del.isPending}
+                className="text-muted-foreground hover:text-terracotta"
+                title="Delete record"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </li>
+          ))}
+          {records?.length === 0 && (
+            <li className="rounded-lg border border-dashed border-white/10 p-4 text-center font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+              No records
+            </li>
+          )}
+        </ul>
+      </div>
+    </div>
+  );
+}
