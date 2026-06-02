@@ -700,36 +700,174 @@ function OwnershipTab({ asset }: { asset: any }) {
       </form>
 
       <div>
-        <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
-          Ledger
-        </p>
-        <ul className="space-y-2">
-          {records?.map((r: any) => (
-            <li key={r.id} className="flex items-start justify-between gap-3 rounded-lg border border-white/10 bg-white/[0.02] p-3">
-              <div>
-                <p className="font-serif text-sm">{r.owner_ref ?? "Anonymous"}</p>
-                <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-                  {r.event_type} · {r.owner_phone ?? "—"} · {new Date(r.acquired_at).toLocaleDateString()}
-                </p>
-                {r.notes && <p className="mt-1 font-serif text-xs text-muted-foreground">{r.notes}</p>}
-              </div>
-              <button
-                onClick={() => del.mutate(r.id)}
-                disabled={del.isPending}
-                className="text-muted-foreground hover:text-terracotta"
-                title="Delete record"
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
-            </li>
-          ))}
-          {records?.length === 0 && (
-            <li className="rounded-lg border border-dashed border-white/10 p-4 text-center font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-              No records
-            </li>
-          )}
-        </ul>
+        <div className="mb-4 flex items-center gap-2">
+          <History className="h-4 w-4 text-bronze" />
+          <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
+            Ownership History Timeline
+          </p>
+        </div>
+
+        {records && records.length > 0 ? (
+          <OwnershipTimeline records={records} onDelete={(id) => del.mutate(id)} deleting={del.isPending} />
+        ) : (
+          <div className="rounded-xl border border-dashed border-white/10 p-6 text-center">
+            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+              No ownership records yet
+            </p>
+          </div>
+        )}
       </div>
     </div>
+  );
+}
+
+function OwnershipTimeline({
+  records,
+  onDelete,
+  deleting,
+}: {
+  records: any[];
+  onDelete: (id: string) => void;
+  deleting: boolean;
+}) {
+  const EVENT_META: Record<string, { label: string; icon: React.ReactNode; color: string; ring: string; bg: string }> = {
+    purchase: {
+      label: "Purchase",
+      icon: <ShoppingBag className="h-3.5 w-3.5" />,
+      color: "text-emerald-400",
+      ring: "ring-emerald-400/30",
+      bg: "bg-emerald-400/10",
+    },
+    transfer: {
+      label: "Transfer",
+      icon: <ArrowRightLeft className="h-3.5 w-3.5" />,
+      color: "text-sky-400",
+      ring: "ring-sky-400/30",
+      bg: "bg-sky-400/10",
+    },
+    resale: {
+      label: "Resale",
+      icon: <HandCoins className="h-3.5 w-3.5" />,
+      color: "text-amber-400",
+      ring: "ring-amber-400/30",
+      bg: "bg-amber-400/10",
+    },
+    gift: {
+      label: "Gift",
+      icon: <Gift className="h-3.5 w-3.5" />,
+      color: "text-rose-400",
+      ring: "ring-rose-400/30",
+      bg: "bg-rose-400/10",
+    },
+  };
+
+  const sorted = [...records].sort(
+    (a, b) => new Date(b.acquired_at).getTime() - new Date(a.acquired_at).getTime(),
+  );
+
+  return (
+    <ol className="relative space-y-0 border-l border-white/10 pl-6">
+      {sorted.map((r, i) => {
+        const meta = EVENT_META[r.event_type] ?? {
+          label: r.event_type,
+          icon: <Tag className="h-3.5 w-3.5" />,
+          color: "text-muted-foreground",
+          ring: "ring-white/10",
+          bg: "bg-white/5",
+        };
+        const isLatest = i === 0;
+        const dt = new Date(r.acquired_at);
+
+        return (
+          <motion.li
+            key={r.id}
+            initial={{ opacity: 0, x: -12 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: i * 0.06, duration: 0.35 }}
+            className="relative pb-6"
+          >
+            {/* Timeline dot */}
+            <span
+              className={`absolute -left-[31px] top-1 flex h-5 w-5 items-center justify-center rounded-full ${meta.bg} ring-2 ${meta.ring}`}
+            >
+              <span className={meta.color}>{meta.icon}</span>
+            </span>
+
+            {/* Card */}
+            <div
+              className={`rounded-xl border p-4 transition hover:border-white/15 ${
+                isLatest
+                  ? "border-bronze/30 bg-gradient-to-br from-bronze/10 to-transparent"
+                  : "border-white/10 bg-white/[0.02]"
+              }`}
+            >
+              {/* Header row */}
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className={`font-mono text-[9px] uppercase tracking-[0.3em] ${meta.color}`}>
+                      {meta.label}
+                    </span>
+                    {isLatest && (
+                      <span className="rounded-full bg-bronze/15 px-2 py-0.5 font-mono text-[8px] uppercase tracking-[0.2em] text-bronze">
+                        Current
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-1 truncate font-serif text-base leading-tight">
+                    {r.owner_ref ?? "Anonymous Owner"}
+                  </p>
+                </div>
+                <button
+                  onClick={() => onDelete(r.id)}
+                  disabled={deleting}
+                  className="shrink-0 text-muted-foreground hover:text-terracotta"
+                  title="Delete record"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
+
+              {/* Detail rows */}
+              <div className="mt-3 grid gap-1.5 sm:grid-cols-2">
+                {r.owner_phone && (
+                  <div className="flex items-center gap-2">
+                    <Phone className="h-3 w-3 text-muted-foreground/60" />
+                    <span className="font-mono text-[11px] text-foreground">{r.owner_phone}</span>
+                  </div>
+                )}
+                {r.store_order_id && (
+                  <div className="flex items-center gap-2">
+                    <Tag className="h-3 w-3 text-muted-foreground/60" />
+                    <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-muted-foreground">
+                      Order // <span className="text-foreground">{r.store_order_id}</span>
+                    </span>
+                  </div>
+                )}
+                <div className="flex items-center gap-2">
+                  <CalendarDays className="h-3 w-3 text-muted-foreground/60" />
+                  <span className="font-mono text-[11px] text-muted-foreground">
+                    {dt.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "2-digit" })}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Clock className="h-3 w-3 text-muted-foreground/60" />
+                  <span className="font-mono text-[11px] text-muted-foreground">
+                    {dt.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}
+                  </span>
+                </div>
+              </div>
+
+              {r.notes && (
+                <div className="mt-3 flex items-start gap-2 rounded-lg border border-white/5 bg-white/[0.02] p-2.5">
+                  <StickyNote className="mt-0.5 h-3 w-3 shrink-0 text-muted-foreground/50" />
+                  <p className="font-serif text-sm leading-snug text-muted-foreground">{r.notes}</p>
+                </div>
+              )}
+            </div>
+          </motion.li>
+        );
+      })}
+    </ol>
   );
 }
