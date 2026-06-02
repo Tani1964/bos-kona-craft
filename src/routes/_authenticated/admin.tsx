@@ -226,12 +226,13 @@ function AssetEditor({ id }: { id: string }) {
       </div>
 
       <Tabs defaultValue="identity">
-        <TabsList className="mb-6 grid w-full max-w-2xl grid-cols-5 bg-white/5">
+        <TabsList className="mb-6 grid w-full max-w-3xl grid-cols-6 bg-white/5">
           <TabsTrigger value="identity">Identity</TabsTrigger>
           <TabsTrigger value="provenance">Provenance</TabsTrigger>
           <TabsTrigger value="makers">Makers</TabsTrigger>
           <TabsTrigger value="atelier">Atelier</TabsTrigger>
           <TabsTrigger value="documentary">Documentary</TabsTrigger>
+          <TabsTrigger value="ownership">Ownership</TabsTrigger>
         </TabsList>
 
         <TabsContent value="identity">
@@ -248,6 +249,9 @@ function AssetEditor({ id }: { id: string }) {
         </TabsContent>
         <TabsContent value="documentary">
           <DocumentaryTab asset={asset} />
+        </TabsContent>
+        <TabsContent value="ownership">
+          <OwnershipTab asset={asset} />
         </TabsContent>
       </Tabs>
 
