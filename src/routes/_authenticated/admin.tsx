@@ -28,6 +28,16 @@ import {
   Trash2,
   Upload,
   Film,
+  ShoppingBag,
+  ArrowRightLeft,
+  HandCoins,
+  Gift,
+  Phone,
+  CalendarDays,
+  Clock,
+  Tag,
+  StickyNote,
+  History,
 } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
