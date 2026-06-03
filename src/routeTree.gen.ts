@@ -19,6 +19,7 @@ import { Route as DocumentaryRouteImport } from './routes/documentary'
 import { Route as ClaimRouteImport } from './routes/claim'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PSerialRouteImport } from './routes/p.$serial'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as ApiPublicStorefrontWebhookRouteImport } from './routes/api/public/storefront-webhook'
 import { Route as ApiPublicNfcTapRouteImport } from './routes/api/public/nfc-tap'
@@ -72,6 +73,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PSerialRoute = PSerialRouteImport.update({
+  id: '/p/$serial',
+  path: '/p/$serial',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -100,6 +106,7 @@ export interface FileRoutesByFullPath {
   '/system': typeof SystemRoute
   '/timeline': typeof TimelineRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/p/$serial': typeof PSerialRoute
   '/api/public/nfc-tap': typeof ApiPublicNfcTapRoute
   '/api/public/storefront-webhook': typeof ApiPublicStorefrontWebhookRoute
 }
@@ -114,6 +121,7 @@ export interface FileRoutesByTo {
   '/system': typeof SystemRoute
   '/timeline': typeof TimelineRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/p/$serial': typeof PSerialRoute
   '/api/public/nfc-tap': typeof ApiPublicNfcTapRoute
   '/api/public/storefront-webhook': typeof ApiPublicStorefrontWebhookRoute
 }
@@ -130,6 +138,7 @@ export interface FileRoutesById {
   '/system': typeof SystemRoute
   '/timeline': typeof TimelineRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/p/$serial': typeof PSerialRoute
   '/api/public/nfc-tap': typeof ApiPublicNfcTapRoute
   '/api/public/storefront-webhook': typeof ApiPublicStorefrontWebhookRoute
 }
@@ -146,6 +155,7 @@ export interface FileRouteTypes {
     | '/system'
     | '/timeline'
     | '/admin'
+    | '/p/$serial'
     | '/api/public/nfc-tap'
     | '/api/public/storefront-webhook'
   fileRoutesByTo: FileRoutesByTo
@@ -160,6 +170,7 @@ export interface FileRouteTypes {
     | '/system'
     | '/timeline'
     | '/admin'
+    | '/p/$serial'
     | '/api/public/nfc-tap'
     | '/api/public/storefront-webhook'
   id:
@@ -175,6 +186,7 @@ export interface FileRouteTypes {
     | '/system'
     | '/timeline'
     | '/_authenticated/admin'
+    | '/p/$serial'
     | '/api/public/nfc-tap'
     | '/api/public/storefront-webhook'
   fileRoutesById: FileRoutesById
@@ -190,6 +202,7 @@ export interface RootRouteChildren {
   ProvenanceRoute: typeof ProvenanceRoute
   SystemRoute: typeof SystemRoute
   TimelineRoute: typeof TimelineRoute
+  PSerialRoute: typeof PSerialRoute
   ApiPublicNfcTapRoute: typeof ApiPublicNfcTapRoute
   ApiPublicStorefrontWebhookRoute: typeof ApiPublicStorefrontWebhookRoute
 }
@@ -266,6 +279,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/p/$serial': {
+      id: '/p/$serial'
+      path: '/p/$serial'
+      fullPath: '/p/$serial'
+      preLoaderRoute: typeof PSerialRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/admin': {
       id: '/_authenticated/admin'
       path: '/admin'
@@ -313,6 +333,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProvenanceRoute: ProvenanceRoute,
   SystemRoute: SystemRoute,
   TimelineRoute: TimelineRoute,
+  PSerialRoute: PSerialRoute,
   ApiPublicNfcTapRoute: ApiPublicNfcTapRoute,
   ApiPublicStorefrontWebhookRoute: ApiPublicStorefrontWebhookRoute,
 }
