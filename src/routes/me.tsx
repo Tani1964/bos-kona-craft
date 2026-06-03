@@ -93,10 +93,8 @@ function MePage() {
             return (
               <Link
                 key={row.asset_id}
-                to="/"
-                onClick={() => {
-                  // /  reads DEFAULT_SERIAL; future: scope by selected asset
-                }}
+                to="/p/$serial"
+                params={{ serial: a.serial }}
                 className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 p-4 transition active:scale-[0.99]"
               >
                 <div>
