@@ -9,13 +9,9 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as TimelineRouteImport } from './routes/timeline'
 import { Route as SystemRouteImport } from './routes/system'
-import { Route as ProvenanceRouteImport } from './routes/provenance'
-import { Route as OwnershipRouteImport } from './routes/ownership'
 import { Route as MeRouteImport } from './routes/me'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as DocumentaryRouteImport } from './routes/documentary'
 import { Route as ClaimRouteImport } from './routes/claim'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
@@ -28,24 +24,9 @@ import { Route as PSerialDocumentaryRouteImport } from './routes/p.$serial.docum
 import { Route as ApiPublicStorefrontWebhookRouteImport } from './routes/api/public/storefront-webhook'
 import { Route as ApiPublicNfcTapRouteImport } from './routes/api/public/nfc-tap'
 
-const TimelineRoute = TimelineRouteImport.update({
-  id: '/timeline',
-  path: '/timeline',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const SystemRoute = SystemRouteImport.update({
   id: '/system',
   path: '/system',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProvenanceRoute = ProvenanceRouteImport.update({
-  id: '/provenance',
-  path: '/provenance',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const OwnershipRoute = OwnershipRouteImport.update({
-  id: '/ownership',
-  path: '/ownership',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MeRoute = MeRouteImport.update({
@@ -56,11 +37,6 @@ const MeRoute = MeRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DocumentaryRoute = DocumentaryRouteImport.update({
-  id: '/documentary',
-  path: '/documentary',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ClaimRoute = ClaimRouteImport.update({
@@ -122,13 +98,9 @@ const ApiPublicNfcTapRoute = ApiPublicNfcTapRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/claim': typeof ClaimRoute
-  '/documentary': typeof DocumentaryRoute
   '/login': typeof LoginRoute
   '/me': typeof MeRoute
-  '/ownership': typeof OwnershipRoute
-  '/provenance': typeof ProvenanceRoute
   '/system': typeof SystemRoute
-  '/timeline': typeof TimelineRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/p/$serial': typeof PSerialRouteWithChildren
   '/api/public/nfc-tap': typeof ApiPublicNfcTapRoute
@@ -141,13 +113,9 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/claim': typeof ClaimRoute
-  '/documentary': typeof DocumentaryRoute
   '/login': typeof LoginRoute
   '/me': typeof MeRoute
-  '/ownership': typeof OwnershipRoute
-  '/provenance': typeof ProvenanceRoute
   '/system': typeof SystemRoute
-  '/timeline': typeof TimelineRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/p/$serial': typeof PSerialRouteWithChildren
   '/api/public/nfc-tap': typeof ApiPublicNfcTapRoute
@@ -162,13 +130,9 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/claim': typeof ClaimRoute
-  '/documentary': typeof DocumentaryRoute
   '/login': typeof LoginRoute
   '/me': typeof MeRoute
-  '/ownership': typeof OwnershipRoute
-  '/provenance': typeof ProvenanceRoute
   '/system': typeof SystemRoute
-  '/timeline': typeof TimelineRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/p/$serial': typeof PSerialRouteWithChildren
   '/api/public/nfc-tap': typeof ApiPublicNfcTapRoute
@@ -183,13 +147,9 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/claim'
-    | '/documentary'
     | '/login'
     | '/me'
-    | '/ownership'
-    | '/provenance'
     | '/system'
-    | '/timeline'
     | '/admin'
     | '/p/$serial'
     | '/api/public/nfc-tap'
@@ -202,13 +162,9 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/claim'
-    | '/documentary'
     | '/login'
     | '/me'
-    | '/ownership'
-    | '/provenance'
     | '/system'
-    | '/timeline'
     | '/admin'
     | '/p/$serial'
     | '/api/public/nfc-tap'
@@ -222,13 +178,9 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/claim'
-    | '/documentary'
     | '/login'
     | '/me'
-    | '/ownership'
-    | '/provenance'
     | '/system'
-    | '/timeline'
     | '/_authenticated/admin'
     | '/p/$serial'
     | '/api/public/nfc-tap'
@@ -243,13 +195,9 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   ClaimRoute: typeof ClaimRoute
-  DocumentaryRoute: typeof DocumentaryRoute
   LoginRoute: typeof LoginRoute
   MeRoute: typeof MeRoute
-  OwnershipRoute: typeof OwnershipRoute
-  ProvenanceRoute: typeof ProvenanceRoute
   SystemRoute: typeof SystemRoute
-  TimelineRoute: typeof TimelineRoute
   PSerialRoute: typeof PSerialRouteWithChildren
   ApiPublicNfcTapRoute: typeof ApiPublicNfcTapRoute
   ApiPublicStorefrontWebhookRoute: typeof ApiPublicStorefrontWebhookRoute
@@ -257,32 +205,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/timeline': {
-      id: '/timeline'
-      path: '/timeline'
-      fullPath: '/timeline'
-      preLoaderRoute: typeof TimelineRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/system': {
       id: '/system'
       path: '/system'
       fullPath: '/system'
       preLoaderRoute: typeof SystemRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/provenance': {
-      id: '/provenance'
-      path: '/provenance'
-      fullPath: '/provenance'
-      preLoaderRoute: typeof ProvenanceRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/ownership': {
-      id: '/ownership'
-      path: '/ownership'
-      fullPath: '/ownership'
-      preLoaderRoute: typeof OwnershipRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/me': {
@@ -297,13 +224,6 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/documentary': {
-      id: '/documentary'
-      path: '/documentary'
-      fullPath: '/documentary'
-      preLoaderRoute: typeof DocumentaryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/claim': {
@@ -419,13 +339,9 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   ClaimRoute: ClaimRoute,
-  DocumentaryRoute: DocumentaryRoute,
   LoginRoute: LoginRoute,
   MeRoute: MeRoute,
-  OwnershipRoute: OwnershipRoute,
-  ProvenanceRoute: ProvenanceRoute,
   SystemRoute: SystemRoute,
-  TimelineRoute: TimelineRoute,
   PSerialRoute: PSerialRouteWithChildren,
   ApiPublicNfcTapRoute: ApiPublicNfcTapRoute,
   ApiPublicStorefrontWebhookRoute: ApiPublicStorefrontWebhookRoute,
@@ -433,3 +349,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
