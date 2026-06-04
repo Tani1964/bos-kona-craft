@@ -12,15 +12,15 @@ import {
   Package,
   type LucideIcon,
 } from "lucide-react";
-import { DEFAULT_SERIAL, passportQueryOptions } from "@/lib/passport/queries";
+import { passportQueryOptions } from "@/lib/passport/queries";
 
-export const Route = createFileRoute("/provenance")({
-  loader: ({ context }) =>
-    context.queryClient.ensureQueryData(passportQueryOptions(DEFAULT_SERIAL)),
+export const Route = createFileRoute("/p/$serial/provenance")({
+  loader: ({ context, params }) =>
+    context.queryClient.ensureQueryData(passportQueryOptions(params.serial)),
   component: ProvenancePage,
-  head: () => ({
+  head: ({ params }) => ({
     meta: [
-      { title: "Craft Provenance · Bos' Kọ́nà" },
+      { title: `Craft Provenance · ${params.serial} · Bos' Kọ́nà` },
       {
         name: "description",
         content:
@@ -52,12 +52,13 @@ function fade(delay = 0) {
 }
 
 function ProvenancePage() {
-  const { data: passport } = useSuspenseQuery(passportQueryOptions(DEFAULT_SERIAL));
+  const { serial: serialParam } = Route.useParams();
+  const { data: passport } = useSuspenseQuery(passportQueryOptions(serialParam));
 
   const stages = (passport?.provenance_stages ?? []) as any[];
   const makers = (passport?.makers ?? []) as any[];
   const atelier = (passport?.atelier as any) ?? null;
-  const serial = passport?.serial ?? DEFAULT_SERIAL;
+  const serial = passport?.serial ?? serialParam;
   const lot = passport?.lot;
 
   return (
@@ -68,7 +69,8 @@ function ProvenancePage() {
           className="sticky top-0 z-30 flex items-center justify-between bg-stone-950/80 px-5 pt-6 pb-3 backdrop-blur-md"
         >
           <Link
-            to="/"
+            to="/p/$serial"
+            params={{ serial: serialParam }}
             className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 transition active:scale-95"
           >
             <ArrowLeft className="h-4 w-4 text-foreground" />

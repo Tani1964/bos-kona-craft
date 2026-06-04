@@ -10,11 +10,11 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 
-export const Route = createFileRoute("/timeline")({
+export const Route = createFileRoute("/p/$serial/timeline")({
   component: TimelinePage,
-  head: () => ({
+  head: ({ params }) => ({
     meta: [
-      { title: "Ownership Timeline · Bos' Kọ́nà" },
+      { title: `Ownership Timeline · ${params.serial} · Bos' Kọ́nà` },
       {
         name: "description",
         content: "Full wear, care and provenance timeline for this asset.",
@@ -44,7 +44,7 @@ const events: TLEvent[] = [
   { type: "wear", date: "Apr 21, 2026", title: "Wear #26", meta: "2.5 hrs · Dry" },
   { type: "care", date: "Apr 14, 2026", title: "Sole Maintenance", meta: "Atelier verified" },
   { type: "wear", date: "Apr 09, 2026", title: "Wear #25", meta: "5.0 hrs · Dry" },
-  { type: "origin", date: "Jan 12, 2026", title: "Issued to Owner", meta: "Bespoke Atelier · Asset 8F92-A4B1", location: "Lagos Atelier" },
+  { type: "origin", date: "Jan 12, 2026", title: "Issued to Owner", meta: "Bespoke Atelier", location: "Lagos Atelier" },
 ];
 
 function fade(delay = 0) {
@@ -56,6 +56,7 @@ function fade(delay = 0) {
 }
 
 function TimelinePage() {
+  const { serial } = Route.useParams();
   const wears = events.filter((e) => e.type === "wear").length;
   const cares = events.filter((e) => e.type === "care").length;
   const scans = events.filter((e) => e.type === "nfc").length;
@@ -63,13 +64,13 @@ function TimelinePage() {
   return (
     <div className="min-h-screen bg-stone-950 text-foreground grain">
       <main className="relative mx-auto h-screen max-w-md overflow-y-auto overflow-x-hidden pb-16">
-        {/* Top nav */}
         <motion.header
           {...fade(0)}
           className="sticky top-0 z-30 flex items-center justify-between bg-stone-950/80 px-5 pt-6 pb-3 backdrop-blur-md"
         >
           <Link
-            to="/"
+            to="/p/$serial"
+            params={{ serial }}
             className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 transition active:scale-95"
           >
             <ArrowLeft className="h-4 w-4 text-foreground" />
@@ -80,7 +81,6 @@ function TimelinePage() {
           <div className="h-9 w-9" />
         </motion.header>
 
-        {/* Title */}
         <section className="px-5 pt-3">
           <motion.p
             {...fade(0.05)}
@@ -98,11 +98,10 @@ function TimelinePage() {
             {...fade(0.18)}
             className="mt-3 font-mono text-[11px] uppercase tracking-[0.25em] text-muted-foreground"
           >
-            Asset // 8F92-A4B1
+            Asset // {serial}
           </motion.p>
         </section>
 
-        {/* Summary */}
         <motion.div
           {...fade(0.25)}
           className="mx-5 mt-6 grid grid-cols-3 gap-2 rounded-xl border border-white/10 bg-white/5 p-3"
@@ -112,7 +111,6 @@ function TimelinePage() {
           <Stat label="NFC" value={String(scans)} />
         </motion.div>
 
-        {/* Timeline */}
         <section className="relative mt-8 px-5">
           <motion.h2
             {...fade(0.32)}
@@ -121,10 +119,8 @@ function TimelinePage() {
             Recent Activity
           </motion.h2>
 
-          {/* Vertical rail */}
           <div className="relative pl-7">
             <div className="absolute left-[10px] top-2 bottom-2 w-px bg-gradient-to-b from-bronze/40 via-white/10 to-transparent" />
-
             {events.map((e, i) => (
               <TimelineRow key={i} event={e} index={i} />
             ))}

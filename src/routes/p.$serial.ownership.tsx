@@ -2,19 +2,20 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { ArrowLeft, ScrollText, ShoppingBag, ExternalLink } from "lucide-react";
-import { DEFAULT_SERIAL, passportQueryOptions } from "@/lib/passport/queries";
+import { passportQueryOptions } from "@/lib/passport/queries";
 import { productUrl } from "@/lib/storefront/boskona";
 
-export const Route = createFileRoute("/ownership")({
-  loader: ({ context }) =>
-    context.queryClient.ensureQueryData(passportQueryOptions(DEFAULT_SERIAL)),
+export const Route = createFileRoute("/p/$serial/ownership")({
+  loader: ({ context, params }) =>
+    context.queryClient.ensureQueryData(passportQueryOptions(params.serial)),
   component: OwnershipPage,
-  head: () => ({
+  head: ({ params }) => ({
     meta: [
-      { title: "Chain of Ownership — Bos' Kọ́nà" },
+      { title: `Chain of Ownership · ${params.serial} — Bos' Kọ́nà` },
       {
         name: "description",
-        content: "Provenance of acquisition: the full ownership ledger for this craft passport.",
+        content:
+          "Provenance of acquisition: the full ownership ledger for this craft passport.",
       },
     ],
   }),
@@ -37,7 +38,8 @@ const EVENT_LABEL: Record<string, string> = {
 };
 
 function OwnershipPage() {
-  const { data: passport } = useSuspenseQuery(passportQueryOptions(DEFAULT_SERIAL));
+  const { serial } = Route.useParams();
+  const { data: passport } = useSuspenseQuery(passportQueryOptions(serial));
   const records = ((passport as any)?.ownership_records ?? []) as OwnershipRecord[];
 
   const storeProductId = (passport as any)?.store_product_id as string | null | undefined;
@@ -46,7 +48,8 @@ function OwnershipPage() {
     <div className="min-h-screen bg-stone-950 text-foreground grain">
       <main className="mx-auto max-w-md px-5 pt-6 pb-24">
         <Link
-          to="/"
+          to="/p/$serial"
+          params={{ serial }}
           className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.3em] text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft className="h-3 w-3" /> Passport
