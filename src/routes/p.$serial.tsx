@@ -115,7 +115,7 @@ function PassportPage() {
   const stage = deriveStage(kfi.score);
   const lifespan = estimateLifespanYears(telemetry);
   const recommendation = deriveRecommendation(telemetry);
-  const feed = resolveFeed(telemetry);
+  const feed = resolveFeed(telemetry, serialParam);
 
   const modelName = passport?.model_name ?? "—";
   const status = passport?.status ?? "New";
