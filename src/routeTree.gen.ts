@@ -15,8 +15,8 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as ClaimRouteImport } from './routes/claim'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as PSerialRouteImport } from './routes/p.$serial'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as PSerialIndexRouteImport } from './routes/p.$serial.index'
 import { Route as PSerialTimelineRouteImport } from './routes/p.$serial.timeline'
 import { Route as PSerialProvenanceRouteImport } from './routes/p.$serial.provenance'
 import { Route as PSerialOwnershipRouteImport } from './routes/p.$serial.ownership'
@@ -53,15 +53,15 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PSerialRoute = PSerialRouteImport.update({
-  id: '/p/$serial',
-  path: '/p/$serial',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
   getParentRoute: () => AuthenticatedRoute,
+} as any)
+const PSerialIndexRoute = PSerialIndexRouteImport.update({
+  id: '/p/$serial/',
+  path: '/p/$serial/',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const PSerialTimelineRoute = PSerialTimelineRouteImport.update({
   id: '/timeline',
@@ -102,13 +102,13 @@ export interface FileRoutesByFullPath {
   '/me': typeof MeRoute
   '/system': typeof SystemRoute
   '/admin': typeof AuthenticatedAdminRoute
-  '/p/$serial': typeof PSerialRouteWithChildren
   '/api/public/nfc-tap': typeof ApiPublicNfcTapRoute
   '/api/public/storefront-webhook': typeof ApiPublicStorefrontWebhookRoute
   '/p/$serial/documentary': typeof PSerialDocumentaryRoute
   '/p/$serial/ownership': typeof PSerialOwnershipRoute
   '/p/$serial/provenance': typeof PSerialProvenanceRoute
   '/p/$serial/timeline': typeof PSerialTimelineRoute
+  '/p/$serial/': typeof PSerialIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -117,13 +117,13 @@ export interface FileRoutesByTo {
   '/me': typeof MeRoute
   '/system': typeof SystemRoute
   '/admin': typeof AuthenticatedAdminRoute
-  '/p/$serial': typeof PSerialRouteWithChildren
   '/api/public/nfc-tap': typeof ApiPublicNfcTapRoute
   '/api/public/storefront-webhook': typeof ApiPublicStorefrontWebhookRoute
   '/p/$serial/documentary': typeof PSerialDocumentaryRoute
   '/p/$serial/ownership': typeof PSerialOwnershipRoute
   '/p/$serial/provenance': typeof PSerialProvenanceRoute
   '/p/$serial/timeline': typeof PSerialTimelineRoute
+  '/p/$serial': typeof PSerialIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -134,13 +134,13 @@ export interface FileRoutesById {
   '/me': typeof MeRoute
   '/system': typeof SystemRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
-  '/p/$serial': typeof PSerialRouteWithChildren
   '/api/public/nfc-tap': typeof ApiPublicNfcTapRoute
   '/api/public/storefront-webhook': typeof ApiPublicStorefrontWebhookRoute
   '/p/$serial/documentary': typeof PSerialDocumentaryRoute
   '/p/$serial/ownership': typeof PSerialOwnershipRoute
   '/p/$serial/provenance': typeof PSerialProvenanceRoute
   '/p/$serial/timeline': typeof PSerialTimelineRoute
+  '/p/$serial/': typeof PSerialIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -151,13 +151,13 @@ export interface FileRouteTypes {
     | '/me'
     | '/system'
     | '/admin'
-    | '/p/$serial'
     | '/api/public/nfc-tap'
     | '/api/public/storefront-webhook'
     | '/p/$serial/documentary'
     | '/p/$serial/ownership'
     | '/p/$serial/provenance'
     | '/p/$serial/timeline'
+    | '/p/$serial/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -166,13 +166,13 @@ export interface FileRouteTypes {
     | '/me'
     | '/system'
     | '/admin'
-    | '/p/$serial'
     | '/api/public/nfc-tap'
     | '/api/public/storefront-webhook'
     | '/p/$serial/documentary'
     | '/p/$serial/ownership'
     | '/p/$serial/provenance'
     | '/p/$serial/timeline'
+    | '/p/$serial'
   id:
     | '__root__'
     | '/'
@@ -182,13 +182,13 @@ export interface FileRouteTypes {
     | '/me'
     | '/system'
     | '/_authenticated/admin'
-    | '/p/$serial'
     | '/api/public/nfc-tap'
     | '/api/public/storefront-webhook'
     | '/p/$serial/documentary'
     | '/p/$serial/ownership'
     | '/p/$serial/provenance'
     | '/p/$serial/timeline'
+    | '/p/$serial/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -198,9 +198,9 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   MeRoute: typeof MeRoute
   SystemRoute: typeof SystemRoute
-  PSerialRoute: typeof PSerialRouteWithChildren
   ApiPublicNfcTapRoute: typeof ApiPublicNfcTapRoute
   ApiPublicStorefrontWebhookRoute: typeof ApiPublicStorefrontWebhookRoute
+  PSerialIndexRoute: typeof PSerialIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -247,19 +247,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/p/$serial': {
-      id: '/p/$serial'
-      path: '/p/$serial'
-      fullPath: '/p/$serial'
-      preLoaderRoute: typeof PSerialRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_authenticated/admin': {
       id: '/_authenticated/admin'
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRoute
+    }
+    '/p/$serial/': {
+      id: '/p/$serial/'
+      path: '/p/$serial'
+      fullPath: '/p/$serial/'
+      preLoaderRoute: typeof PSerialIndexRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/p/$serial/timeline': {
       id: '/p/$serial/timeline'
@@ -318,23 +318,6 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
   AuthenticatedRouteChildren,
 )
 
-interface PSerialRouteChildren {
-  PSerialDocumentaryRoute: typeof PSerialDocumentaryRoute
-  PSerialOwnershipRoute: typeof PSerialOwnershipRoute
-  PSerialProvenanceRoute: typeof PSerialProvenanceRoute
-  PSerialTimelineRoute: typeof PSerialTimelineRoute
-}
-
-const PSerialRouteChildren: PSerialRouteChildren = {
-  PSerialDocumentaryRoute: PSerialDocumentaryRoute,
-  PSerialOwnershipRoute: PSerialOwnershipRoute,
-  PSerialProvenanceRoute: PSerialProvenanceRoute,
-  PSerialTimelineRoute: PSerialTimelineRoute,
-}
-
-const PSerialRouteWithChildren =
-  PSerialRoute._addFileChildren(PSerialRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
@@ -342,9 +325,9 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   MeRoute: MeRoute,
   SystemRoute: SystemRoute,
-  PSerialRoute: PSerialRouteWithChildren,
   ApiPublicNfcTapRoute: ApiPublicNfcTapRoute,
   ApiPublicStorefrontWebhookRoute: ApiPublicStorefrontWebhookRoute,
+  PSerialIndexRoute: PSerialIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

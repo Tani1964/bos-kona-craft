@@ -50,7 +50,7 @@ function Thumb({ style }: { style: ThumbnailStyle }) {
   return null;
 }
 
-export const Route = createFileRoute("/p/$serial")({
+export const Route = createFileRoute("/p/$serial/")({
   loader: async ({ context, params }) => {
     const data = await context.queryClient
       .ensureQueryData(passportQueryOptions(params.serial))
