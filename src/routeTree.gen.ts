@@ -22,6 +22,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as PSerialRouteImport } from './routes/p.$serial'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as PSerialTimelineRouteImport } from './routes/p.$serial.timeline'
+import { Route as PSerialOwnershipRouteImport } from './routes/p.$serial.ownership'
 import { Route as ApiPublicStorefrontWebhookRouteImport } from './routes/api/public/storefront-webhook'
 import { Route as ApiPublicNfcTapRouteImport } from './routes/api/public/nfc-tap'
 
@@ -89,6 +90,11 @@ const PSerialTimelineRoute = PSerialTimelineRouteImport.update({
   path: '/timeline',
   getParentRoute: () => PSerialRoute,
 } as any)
+const PSerialOwnershipRoute = PSerialOwnershipRouteImport.update({
+  id: '/ownership',
+  path: '/ownership',
+  getParentRoute: () => PSerialRoute,
+} as any)
 const ApiPublicStorefrontWebhookRoute =
   ApiPublicStorefrontWebhookRouteImport.update({
     id: '/api/public/storefront-webhook',
@@ -115,6 +121,7 @@ export interface FileRoutesByFullPath {
   '/p/$serial': typeof PSerialRouteWithChildren
   '/api/public/nfc-tap': typeof ApiPublicNfcTapRoute
   '/api/public/storefront-webhook': typeof ApiPublicStorefrontWebhookRoute
+  '/p/$serial/ownership': typeof PSerialOwnershipRoute
   '/p/$serial/timeline': typeof PSerialTimelineRoute
 }
 export interface FileRoutesByTo {
@@ -131,6 +138,7 @@ export interface FileRoutesByTo {
   '/p/$serial': typeof PSerialRouteWithChildren
   '/api/public/nfc-tap': typeof ApiPublicNfcTapRoute
   '/api/public/storefront-webhook': typeof ApiPublicStorefrontWebhookRoute
+  '/p/$serial/ownership': typeof PSerialOwnershipRoute
   '/p/$serial/timeline': typeof PSerialTimelineRoute
 }
 export interface FileRoutesById {
@@ -149,6 +157,7 @@ export interface FileRoutesById {
   '/p/$serial': typeof PSerialRouteWithChildren
   '/api/public/nfc-tap': typeof ApiPublicNfcTapRoute
   '/api/public/storefront-webhook': typeof ApiPublicStorefrontWebhookRoute
+  '/p/$serial/ownership': typeof PSerialOwnershipRoute
   '/p/$serial/timeline': typeof PSerialTimelineRoute
 }
 export interface FileRouteTypes {
@@ -167,6 +176,7 @@ export interface FileRouteTypes {
     | '/p/$serial'
     | '/api/public/nfc-tap'
     | '/api/public/storefront-webhook'
+    | '/p/$serial/ownership'
     | '/p/$serial/timeline'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -183,6 +193,7 @@ export interface FileRouteTypes {
     | '/p/$serial'
     | '/api/public/nfc-tap'
     | '/api/public/storefront-webhook'
+    | '/p/$serial/ownership'
     | '/p/$serial/timeline'
   id:
     | '__root__'
@@ -200,6 +211,7 @@ export interface FileRouteTypes {
     | '/p/$serial'
     | '/api/public/nfc-tap'
     | '/api/public/storefront-webhook'
+    | '/p/$serial/ownership'
     | '/p/$serial/timeline'
   fileRoutesById: FileRoutesById
 }
@@ -312,6 +324,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PSerialTimelineRouteImport
       parentRoute: typeof PSerialRoute
     }
+    '/p/$serial/ownership': {
+      id: '/p/$serial/ownership'
+      path: '/ownership'
+      fullPath: '/p/$serial/ownership'
+      preLoaderRoute: typeof PSerialOwnershipRouteImport
+      parentRoute: typeof PSerialRoute
+    }
     '/api/public/storefront-webhook': {
       id: '/api/public/storefront-webhook'
       path: '/api/public/storefront-webhook'
@@ -342,10 +361,12 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
 )
 
 interface PSerialRouteChildren {
+  PSerialOwnershipRoute: typeof PSerialOwnershipRoute
   PSerialTimelineRoute: typeof PSerialTimelineRoute
 }
 
 const PSerialRouteChildren: PSerialRouteChildren = {
+  PSerialOwnershipRoute: PSerialOwnershipRoute,
   PSerialTimelineRoute: PSerialTimelineRoute,
 }
 
