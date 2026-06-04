@@ -125,12 +125,18 @@ export interface ResolvedModule extends EcosystemModule {
 }
 
 /** Single entry-point the UI calls each render. */
-export function resolveFeed(telemetry: AssetTelemetry): ResolvedModule[] {
+export function resolveFeed(
+  telemetry: AssetTelemetry,
+  serial?: string,
+): ResolvedModule[] {
   const ctx = buildContext(telemetry);
   return ECOSYSTEM.map((m) => {
     const locked = !m.unlock(ctx);
+    const to =
+      m.to && serial ? `/p/${encodeURIComponent(serial)}${m.to}` : m.to;
     return {
       ...m,
+      to,
       locked,
       resolvedSubtitle: locked ? m.lockedHint : m.subtitle(ctx),
     };
