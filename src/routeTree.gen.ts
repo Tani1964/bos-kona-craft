@@ -24,6 +24,7 @@ import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/
 import { Route as PSerialTimelineRouteImport } from './routes/p.$serial.timeline'
 import { Route as PSerialProvenanceRouteImport } from './routes/p.$serial.provenance'
 import { Route as PSerialOwnershipRouteImport } from './routes/p.$serial.ownership'
+import { Route as PSerialDocumentaryRouteImport } from './routes/p.$serial.documentary'
 import { Route as ApiPublicStorefrontWebhookRouteImport } from './routes/api/public/storefront-webhook'
 import { Route as ApiPublicNfcTapRouteImport } from './routes/api/public/nfc-tap'
 
@@ -101,6 +102,11 @@ const PSerialOwnershipRoute = PSerialOwnershipRouteImport.update({
   path: '/ownership',
   getParentRoute: () => PSerialRoute,
 } as any)
+const PSerialDocumentaryRoute = PSerialDocumentaryRouteImport.update({
+  id: '/documentary',
+  path: '/documentary',
+  getParentRoute: () => PSerialRoute,
+} as any)
 const ApiPublicStorefrontWebhookRoute =
   ApiPublicStorefrontWebhookRouteImport.update({
     id: '/api/public/storefront-webhook',
@@ -127,6 +133,7 @@ export interface FileRoutesByFullPath {
   '/p/$serial': typeof PSerialRouteWithChildren
   '/api/public/nfc-tap': typeof ApiPublicNfcTapRoute
   '/api/public/storefront-webhook': typeof ApiPublicStorefrontWebhookRoute
+  '/p/$serial/documentary': typeof PSerialDocumentaryRoute
   '/p/$serial/ownership': typeof PSerialOwnershipRoute
   '/p/$serial/provenance': typeof PSerialProvenanceRoute
   '/p/$serial/timeline': typeof PSerialTimelineRoute
@@ -145,6 +152,7 @@ export interface FileRoutesByTo {
   '/p/$serial': typeof PSerialRouteWithChildren
   '/api/public/nfc-tap': typeof ApiPublicNfcTapRoute
   '/api/public/storefront-webhook': typeof ApiPublicStorefrontWebhookRoute
+  '/p/$serial/documentary': typeof PSerialDocumentaryRoute
   '/p/$serial/ownership': typeof PSerialOwnershipRoute
   '/p/$serial/provenance': typeof PSerialProvenanceRoute
   '/p/$serial/timeline': typeof PSerialTimelineRoute
@@ -165,6 +173,7 @@ export interface FileRoutesById {
   '/p/$serial': typeof PSerialRouteWithChildren
   '/api/public/nfc-tap': typeof ApiPublicNfcTapRoute
   '/api/public/storefront-webhook': typeof ApiPublicStorefrontWebhookRoute
+  '/p/$serial/documentary': typeof PSerialDocumentaryRoute
   '/p/$serial/ownership': typeof PSerialOwnershipRoute
   '/p/$serial/provenance': typeof PSerialProvenanceRoute
   '/p/$serial/timeline': typeof PSerialTimelineRoute
@@ -185,6 +194,7 @@ export interface FileRouteTypes {
     | '/p/$serial'
     | '/api/public/nfc-tap'
     | '/api/public/storefront-webhook'
+    | '/p/$serial/documentary'
     | '/p/$serial/ownership'
     | '/p/$serial/provenance'
     | '/p/$serial/timeline'
@@ -203,6 +213,7 @@ export interface FileRouteTypes {
     | '/p/$serial'
     | '/api/public/nfc-tap'
     | '/api/public/storefront-webhook'
+    | '/p/$serial/documentary'
     | '/p/$serial/ownership'
     | '/p/$serial/provenance'
     | '/p/$serial/timeline'
@@ -222,6 +233,7 @@ export interface FileRouteTypes {
     | '/p/$serial'
     | '/api/public/nfc-tap'
     | '/api/public/storefront-webhook'
+    | '/p/$serial/documentary'
     | '/p/$serial/ownership'
     | '/p/$serial/provenance'
     | '/p/$serial/timeline'
@@ -350,6 +362,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PSerialOwnershipRouteImport
       parentRoute: typeof PSerialRoute
     }
+    '/p/$serial/documentary': {
+      id: '/p/$serial/documentary'
+      path: '/documentary'
+      fullPath: '/p/$serial/documentary'
+      preLoaderRoute: typeof PSerialDocumentaryRouteImport
+      parentRoute: typeof PSerialRoute
+    }
     '/api/public/storefront-webhook': {
       id: '/api/public/storefront-webhook'
       path: '/api/public/storefront-webhook'
@@ -380,12 +399,14 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
 )
 
 interface PSerialRouteChildren {
+  PSerialDocumentaryRoute: typeof PSerialDocumentaryRoute
   PSerialOwnershipRoute: typeof PSerialOwnershipRoute
   PSerialProvenanceRoute: typeof PSerialProvenanceRoute
   PSerialTimelineRoute: typeof PSerialTimelineRoute
 }
 
 const PSerialRouteChildren: PSerialRouteChildren = {
+  PSerialDocumentaryRoute: PSerialDocumentaryRoute,
   PSerialOwnershipRoute: PSerialOwnershipRoute,
   PSerialProvenanceRoute: PSerialProvenanceRoute,
   PSerialTimelineRoute: PSerialTimelineRoute,
