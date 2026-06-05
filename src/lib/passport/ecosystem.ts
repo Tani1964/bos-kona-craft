@@ -12,6 +12,7 @@ import {
   Archive,
   Sparkles,
   ScrollText,
+  LineChart,
   type LucideIcon,
 } from "lucide-react";
 
