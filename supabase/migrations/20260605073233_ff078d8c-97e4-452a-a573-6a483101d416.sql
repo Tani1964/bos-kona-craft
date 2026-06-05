@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Public read ownership_records" ON public.ownership_records;

@@ -64,24 +64,24 @@ const PSerialIndexRoute = PSerialIndexRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const PSerialTimelineRoute = PSerialTimelineRouteImport.update({
-  id: '/timeline',
-  path: '/timeline',
-  getParentRoute: () => PSerialRoute,
+  id: '/p/$serial/timeline',
+  path: '/p/$serial/timeline',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const PSerialProvenanceRoute = PSerialProvenanceRouteImport.update({
-  id: '/provenance',
-  path: '/provenance',
-  getParentRoute: () => PSerialRoute,
+  id: '/p/$serial/provenance',
+  path: '/p/$serial/provenance',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const PSerialOwnershipRoute = PSerialOwnershipRouteImport.update({
-  id: '/ownership',
-  path: '/ownership',
-  getParentRoute: () => PSerialRoute,
+  id: '/p/$serial/ownership',
+  path: '/p/$serial/ownership',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const PSerialDocumentaryRoute = PSerialDocumentaryRouteImport.update({
-  id: '/documentary',
-  path: '/documentary',
-  getParentRoute: () => PSerialRoute,
+  id: '/p/$serial/documentary',
+  path: '/p/$serial/documentary',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicStorefrontWebhookRoute =
   ApiPublicStorefrontWebhookRouteImport.update({
@@ -200,6 +200,10 @@ export interface RootRouteChildren {
   SystemRoute: typeof SystemRoute
   ApiPublicNfcTapRoute: typeof ApiPublicNfcTapRoute
   ApiPublicStorefrontWebhookRoute: typeof ApiPublicStorefrontWebhookRoute
+  PSerialDocumentaryRoute: typeof PSerialDocumentaryRoute
+  PSerialOwnershipRoute: typeof PSerialOwnershipRoute
+  PSerialProvenanceRoute: typeof PSerialProvenanceRoute
+  PSerialTimelineRoute: typeof PSerialTimelineRoute
   PSerialIndexRoute: typeof PSerialIndexRoute
 }
 
@@ -263,31 +267,31 @@ declare module '@tanstack/react-router' {
     }
     '/p/$serial/timeline': {
       id: '/p/$serial/timeline'
-      path: '/timeline'
+      path: '/p/$serial/timeline'
       fullPath: '/p/$serial/timeline'
       preLoaderRoute: typeof PSerialTimelineRouteImport
-      parentRoute: typeof PSerialRoute
+      parentRoute: typeof rootRouteImport
     }
     '/p/$serial/provenance': {
       id: '/p/$serial/provenance'
-      path: '/provenance'
+      path: '/p/$serial/provenance'
       fullPath: '/p/$serial/provenance'
       preLoaderRoute: typeof PSerialProvenanceRouteImport
-      parentRoute: typeof PSerialRoute
+      parentRoute: typeof rootRouteImport
     }
     '/p/$serial/ownership': {
       id: '/p/$serial/ownership'
-      path: '/ownership'
+      path: '/p/$serial/ownership'
       fullPath: '/p/$serial/ownership'
       preLoaderRoute: typeof PSerialOwnershipRouteImport
-      parentRoute: typeof PSerialRoute
+      parentRoute: typeof rootRouteImport
     }
     '/p/$serial/documentary': {
       id: '/p/$serial/documentary'
-      path: '/documentary'
+      path: '/p/$serial/documentary'
       fullPath: '/p/$serial/documentary'
       preLoaderRoute: typeof PSerialDocumentaryRouteImport
-      parentRoute: typeof PSerialRoute
+      parentRoute: typeof rootRouteImport
     }
     '/api/public/storefront-webhook': {
       id: '/api/public/storefront-webhook'
@@ -327,18 +331,12 @@ const rootRouteChildren: RootRouteChildren = {
   SystemRoute: SystemRoute,
   ApiPublicNfcTapRoute: ApiPublicNfcTapRoute,
   ApiPublicStorefrontWebhookRoute: ApiPublicStorefrontWebhookRoute,
+  PSerialDocumentaryRoute: PSerialDocumentaryRoute,
+  PSerialOwnershipRoute: PSerialOwnershipRoute,
+  PSerialProvenanceRoute: PSerialProvenanceRoute,
+  PSerialTimelineRoute: PSerialTimelineRoute,
   PSerialIndexRoute: PSerialIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
