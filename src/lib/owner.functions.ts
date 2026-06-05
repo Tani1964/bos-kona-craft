@@ -3,6 +3,11 @@ import { useSession } from "@tanstack/react-start/server";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { computeEffectiveStress, getWeather } from "@/lib/weather.server";
+import {
+  computeLongevity,
+  inferMaterial,
+  type TransportMix,
+} from "@/lib/passport/longevity";
 
 // ── Session (lightweight, no OTP) ──────────────────────────────
 // Phone match against store-registered ownership_records.owner_phone is the
@@ -306,4 +311,99 @@ export const dismissInsight = createServerFn({ method: "POST" })
       .update({ shown_at: new Date().toISOString() })
       .eq("id", data.insight_id);
     return { ok: true };
+  });
+
+// ── Longevity (owner-only) ────────────────────────────────────
+
+export const getLongevity = createServerFn({ method: "GET" })
+  .inputValidator((d: { asset_id: string }) =>
+    z.object({ asset_id: z.string().uuid() }).parse(d),
+  )
+  .handler(async ({ data }) => {
+    await requireOwnership(data.asset_id);
+
+    const windowDays = 90;
+    const since = new Date(
+      Date.now() - windowDays * 24 * 60 * 60 * 1000,
+    ).toISOString();
+
+    const [{ data: asset }, { data: tele }, { data: wear }, { data: care }] =
+      await Promise.all([
+        supabaseAdmin
+          .from("assets")
+          .select("id, serial, model_name")
+          .eq("id", data.asset_id)
+          .maybeSingle(),
+        supabaseAdmin
+          .from("asset_telemetry")
+          .select("age_days, repairs")
+          .eq("asset_id", data.asset_id)
+          .maybeSingle(),
+        supabaseAdmin
+          .from("wear_events")
+          .select("effective_stress, transport_mode, started_at")
+          .eq("asset_id", data.asset_id)
+          .gte("started_at", since),
+        supabaseAdmin
+          .from("care_sessions")
+          .select("status, ended_at, started_at")
+          .eq("asset_id", data.asset_id)
+          .gte("started_at", since),
+      ]);
+
+    if (!asset) throw new Error("Asset not found");
+
+    const wears = wear ?? [];
+    const effectiveStress = wears.reduce(
+      (s, w: any) => s + (Number(w.effective_stress) || 0),
+      0,
+    );
+
+    const mix: TransportMix = { walking: 0, transit: 0, car: 0 };
+    for (const w of wears) {
+      const m = (w as any).transport_mode as keyof TransportMix;
+      if (m && mix[m] != null) mix[m] += 1;
+    }
+    const total = mix.walking + mix.transit + mix.car;
+    const transportMix: TransportMix =
+      total > 0
+        ? {
+            walking: mix.walking / total,
+            transit: mix.transit / total,
+            car: mix.car / total,
+          }
+        : { walking: 0.5, transit: 0.25, car: 0.25 };
+
+    const completedCare = (care ?? []).filter(
+      (c: any) => c.status === "complete" || c.ended_at,
+    );
+    const lastCare =
+      completedCare
+        .map((c: any) => c.ended_at ?? c.started_at)
+        .sort()
+        .reverse()[0] ?? null;
+    const daysSinceCare = lastCare
+      ? Math.floor(
+          (Date.now() - new Date(lastCare).getTime()) / 86400000,
+        )
+      : null;
+
+    const result = computeLongevity({
+      material: inferMaterial(asset.model_name),
+      ageDays: tele?.age_days ?? 0,
+      wearEvents: wears.length,
+      effectiveStress,
+      careSessions: completedCare.length,
+      daysSinceCare,
+      transportMix,
+      repairs: tele?.repairs ?? 0,
+      windowDays,
+    });
+
+    return {
+      ...result,
+      material: inferMaterial(asset.model_name),
+      windowDays,
+      transportMix,
+    };
   });

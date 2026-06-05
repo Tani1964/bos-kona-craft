@@ -20,6 +20,7 @@ import { Route as PSerialIndexRouteImport } from './routes/p.$serial.index'
 import { Route as PSerialTimelineRouteImport } from './routes/p.$serial.timeline'
 import { Route as PSerialProvenanceRouteImport } from './routes/p.$serial.provenance'
 import { Route as PSerialOwnershipRouteImport } from './routes/p.$serial.ownership'
+import { Route as PSerialLongevityRouteImport } from './routes/p.$serial.longevity'
 import { Route as PSerialDocumentaryRouteImport } from './routes/p.$serial.documentary'
 import { Route as ApiPublicStorefrontWebhookRouteImport } from './routes/api/public/storefront-webhook'
 import { Route as ApiPublicNfcTapRouteImport } from './routes/api/public/nfc-tap'
@@ -78,6 +79,11 @@ const PSerialOwnershipRoute = PSerialOwnershipRouteImport.update({
   path: '/p/$serial/ownership',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PSerialLongevityRoute = PSerialLongevityRouteImport.update({
+  id: '/p/$serial/longevity',
+  path: '/p/$serial/longevity',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PSerialDocumentaryRoute = PSerialDocumentaryRouteImport.update({
   id: '/p/$serial/documentary',
   path: '/p/$serial/documentary',
@@ -105,6 +111,7 @@ export interface FileRoutesByFullPath {
   '/api/public/nfc-tap': typeof ApiPublicNfcTapRoute
   '/api/public/storefront-webhook': typeof ApiPublicStorefrontWebhookRoute
   '/p/$serial/documentary': typeof PSerialDocumentaryRoute
+  '/p/$serial/longevity': typeof PSerialLongevityRoute
   '/p/$serial/ownership': typeof PSerialOwnershipRoute
   '/p/$serial/provenance': typeof PSerialProvenanceRoute
   '/p/$serial/timeline': typeof PSerialTimelineRoute
@@ -120,6 +127,7 @@ export interface FileRoutesByTo {
   '/api/public/nfc-tap': typeof ApiPublicNfcTapRoute
   '/api/public/storefront-webhook': typeof ApiPublicStorefrontWebhookRoute
   '/p/$serial/documentary': typeof PSerialDocumentaryRoute
+  '/p/$serial/longevity': typeof PSerialLongevityRoute
   '/p/$serial/ownership': typeof PSerialOwnershipRoute
   '/p/$serial/provenance': typeof PSerialProvenanceRoute
   '/p/$serial/timeline': typeof PSerialTimelineRoute
@@ -137,6 +145,7 @@ export interface FileRoutesById {
   '/api/public/nfc-tap': typeof ApiPublicNfcTapRoute
   '/api/public/storefront-webhook': typeof ApiPublicStorefrontWebhookRoute
   '/p/$serial/documentary': typeof PSerialDocumentaryRoute
+  '/p/$serial/longevity': typeof PSerialLongevityRoute
   '/p/$serial/ownership': typeof PSerialOwnershipRoute
   '/p/$serial/provenance': typeof PSerialProvenanceRoute
   '/p/$serial/timeline': typeof PSerialTimelineRoute
@@ -154,6 +163,7 @@ export interface FileRouteTypes {
     | '/api/public/nfc-tap'
     | '/api/public/storefront-webhook'
     | '/p/$serial/documentary'
+    | '/p/$serial/longevity'
     | '/p/$serial/ownership'
     | '/p/$serial/provenance'
     | '/p/$serial/timeline'
@@ -169,6 +179,7 @@ export interface FileRouteTypes {
     | '/api/public/nfc-tap'
     | '/api/public/storefront-webhook'
     | '/p/$serial/documentary'
+    | '/p/$serial/longevity'
     | '/p/$serial/ownership'
     | '/p/$serial/provenance'
     | '/p/$serial/timeline'
@@ -185,6 +196,7 @@ export interface FileRouteTypes {
     | '/api/public/nfc-tap'
     | '/api/public/storefront-webhook'
     | '/p/$serial/documentary'
+    | '/p/$serial/longevity'
     | '/p/$serial/ownership'
     | '/p/$serial/provenance'
     | '/p/$serial/timeline'
@@ -201,6 +213,7 @@ export interface RootRouteChildren {
   ApiPublicNfcTapRoute: typeof ApiPublicNfcTapRoute
   ApiPublicStorefrontWebhookRoute: typeof ApiPublicStorefrontWebhookRoute
   PSerialDocumentaryRoute: typeof PSerialDocumentaryRoute
+  PSerialLongevityRoute: typeof PSerialLongevityRoute
   PSerialOwnershipRoute: typeof PSerialOwnershipRoute
   PSerialProvenanceRoute: typeof PSerialProvenanceRoute
   PSerialTimelineRoute: typeof PSerialTimelineRoute
@@ -286,6 +299,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PSerialOwnershipRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/p/$serial/longevity': {
+      id: '/p/$serial/longevity'
+      path: '/p/$serial/longevity'
+      fullPath: '/p/$serial/longevity'
+      preLoaderRoute: typeof PSerialLongevityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/p/$serial/documentary': {
       id: '/p/$serial/documentary'
       path: '/p/$serial/documentary'
@@ -332,6 +352,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicNfcTapRoute: ApiPublicNfcTapRoute,
   ApiPublicStorefrontWebhookRoute: ApiPublicStorefrontWebhookRoute,
   PSerialDocumentaryRoute: PSerialDocumentaryRoute,
+  PSerialLongevityRoute: PSerialLongevityRoute,
   PSerialOwnershipRoute: PSerialOwnershipRoute,
   PSerialProvenanceRoute: PSerialProvenanceRoute,
   PSerialTimelineRoute: PSerialTimelineRoute,

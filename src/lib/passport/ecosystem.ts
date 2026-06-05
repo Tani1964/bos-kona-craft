@@ -12,6 +12,7 @@ import {
   Archive,
   Sparkles,
   ScrollText,
+  LineChart,
   type LucideIcon,
 } from "lucide-react";
 
@@ -62,6 +63,20 @@ export const ECOSYSTEM: EcosystemModule[] = [
     subtitle: () => "Provenance of acquisition",
     to: "/ownership",
     icon: ScrollText,
+    unlock: UnlockRules.always(),
+    lockedHint: "",
+  },
+  {
+    id: "longevity",
+    ordinal: 10,
+    title: "Longevity Projection",
+    subtitle: () => "Lifespan range from your wear & care",
+    to: "/longevity",
+    icon: LineChart,
+    thumbnail: {
+      kind: "radial",
+      spec: "circle_at_70%_40%,oklch(0.55_0.14_60),oklch(0.12_0.02_50)_70%",
+    },
     unlock: UnlockRules.always(),
     lockedHint: "",
   },
