@@ -3,6 +3,11 @@ import { useSession } from "@tanstack/react-start/server";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { computeEffectiveStress, getWeather } from "@/lib/weather.server";
+import {
+  computeLongevity,
+  inferMaterial,
+  type TransportMix,
+} from "@/lib/passport/longevity";
 
 // ── Session (lightweight, no OTP) ──────────────────────────────
 // Phone match against store-registered ownership_records.owner_phone is the
