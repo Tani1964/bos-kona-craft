@@ -10,7 +10,11 @@ import {
   Shield,
   Sparkles,
   ExternalLink,
+  TrendingUp,
+  TrendingDown,
+  Minus,
 } from "lucide-react";
+
 import { productUrl } from "@/lib/storefront/boskona";
 
 import { KfiRing } from "@/components/passport/KfiRing";
@@ -20,16 +24,16 @@ import { OutTheDoorSheet } from "@/components/passport/OutTheDoorSheet";
 import { CareWhisper } from "@/components/passport/CareWhisper";
 import { OwnerChip } from "@/components/passport/OwnerChip";
 import * as ownerFns from "@/lib/owner.functions";
-import { getLiveSignals } from "@/lib/passport.functions";
+import { getLiveSignals, getKfi } from "@/lib/passport.functions";
 import { resolveFeed, type ThumbnailStyle } from "@/lib/passport/ecosystem";
 import {
-  computeKfi,
   deriveStage,
   deriveRecommendation,
   estimateLifespanYears,
   type AssetTelemetry,
 } from "@/lib/passport/state-engine";
 import { passportQueryOptions } from "@/lib/passport/queries";
+
 
 function Thumb({ style }: { style: ThumbnailStyle }) {
   if (style.kind === "gradient") {
