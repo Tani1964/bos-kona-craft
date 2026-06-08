@@ -10,6 +10,9 @@ import {
 import { useEffect } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { InstallPrompt } from "@/components/InstallPrompt";
+import { registerAppSW } from "@/pwa/registerSW";
+
 
 import appCss from "../styles.css?url";
 
@@ -106,16 +109,22 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
       router.invalidate();
-      queryClient.invalidateQueries();
+      if (event !== "SIGNED_OUT") queryClient.invalidateQueries();
     });
     return () => subscription.unsubscribe();
   }, [router, queryClient]);
+  useEffect(() => {
+    registerAppSW();
+  }, []);
   return (
     <QueryClientProvider client={queryClient}>
       <Outlet />
       <Toaster />
+      <InstallPrompt />
     </QueryClientProvider>
   );
 }
+
