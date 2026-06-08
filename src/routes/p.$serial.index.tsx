@@ -10,7 +10,11 @@ import {
   Shield,
   Sparkles,
   ExternalLink,
+  TrendingUp,
+  TrendingDown,
+  Minus,
 } from "lucide-react";
+
 import { productUrl } from "@/lib/storefront/boskona";
 
 import { KfiRing } from "@/components/passport/KfiRing";
@@ -20,16 +24,16 @@ import { OutTheDoorSheet } from "@/components/passport/OutTheDoorSheet";
 import { CareWhisper } from "@/components/passport/CareWhisper";
 import { OwnerChip } from "@/components/passport/OwnerChip";
 import * as ownerFns from "@/lib/owner.functions";
-import { getLiveSignals } from "@/lib/passport.functions";
+import { getLiveSignals, getKfi } from "@/lib/passport.functions";
 import { resolveFeed, type ThumbnailStyle } from "@/lib/passport/ecosystem";
 import {
-  computeKfi,
   deriveStage,
   deriveRecommendation,
   estimateLifespanYears,
   type AssetTelemetry,
 } from "@/lib/passport/state-engine";
 import { passportQueryOptions } from "@/lib/passport/queries";
+
 
 function Thumb({ style }: { style: ThumbnailStyle }) {
   if (style.kind === "gradient") {
@@ -111,11 +115,31 @@ function PassportPage() {
     daysSinceWear: live?.daysSinceWear,
   };
 
-  const kfi = computeKfi(telemetry);
-  const stage = deriveStage(kfi.score);
+  const fetchKfi = useServerFn(getKfi);
+  const { data: kfiData } = useQuery({
+    queryKey: ["kfi", assetIdEarly],
+    queryFn: () =>
+      assetIdEarly
+        ? fetchKfi({ data: { asset_id: assetIdEarly } }).catch(() => null)
+        : Promise.resolve(null),
+    enabled: !!assetIdEarly,
+    refetchOnWindowFocus: true,
+    staleTime: 30_000,
+  });
+
+  // Fallback score from telemetry while server KFI loads (keeps SSR/first-paint stable).
+  const fallbackScore = clampScore(
+    100 -
+      Math.min(telemetry.wears * 0.6, 30) -
+      Math.min((telemetry.ageDays / 365) * 1.2, 15) +
+      Math.min(telemetry.careEntries * 3, 25),
+  );
+  const score = kfiData?.score ?? fallbackScore;
+  const stage = deriveStage(score);
   const lifespan = estimateLifespanYears(telemetry);
   const recommendation = deriveRecommendation(telemetry);
   const feed = resolveFeed(telemetry, serialParam);
+
 
   const modelName = passport?.model_name ?? "—";
   const status = passport?.status ?? "New";
@@ -207,15 +231,46 @@ function PassportPage() {
         {assetId && isOwner && <CareWhisper assetId={assetId} />}
 
         <section className="mt-8 px-5">
-          <KfiRing score={kfi.score} stage={stage} />
+          <KfiRing score={score} stage={stage} />
+
+          {kfiData && (
+            <motion.div
+              {...fade(0.55)}
+              className="mt-4 flex items-center justify-center gap-2 font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground"
+            >
+              <TrendIcon dir={kfiData.trend.direction} />
+              <span>
+                {kfiData.trend.direction === "flat"
+                  ? "Stable vs last 90d"
+                  : `${kfiData.trend.delta > 0 ? "+" : ""}${kfiData.trend.delta} vs last 90d`}
+              </span>
+            </motion.div>
+          )}
 
           <motion.div
             {...fade(0.6)}
-            className="mt-6 grid grid-cols-3 gap-2 rounded-xl border border-white/10 bg-white/5 p-3"
+            className="mt-4 grid grid-cols-2 gap-2 rounded-xl border border-white/10 bg-white/5 p-3"
           >
-            <Stat label="Wear" value={kfi.wearImpact.toFixed(1)} tone="bad" />
-            <Stat label="Age" value={kfi.ageImpact.toFixed(1)} tone="bad" />
-            <Stat label="Care" value={`+${kfi.careImpact.toFixed(1)}`} tone="good" />
+            <KfiStat
+              label="Maintenance"
+              value={kfiData?.components.maintenanceConsistency.score ?? 0}
+              note={kfiData?.components.maintenanceConsistency.note}
+            />
+            <KfiStat
+              label="Responsiveness"
+              value={kfiData?.components.careResponsiveness.score ?? 0}
+              note={kfiData?.components.careResponsiveness.note}
+            />
+            <KfiStat
+              label="Env. Load"
+              value={kfiData?.components.environmentalLoad.score ?? 0}
+              note={kfiData?.components.environmentalLoad.note}
+            />
+            <KfiStat
+              label="Cadence"
+              value={kfiData?.components.cadenceHealth.score ?? 0}
+              note={kfiData?.components.cadenceHealth.note}
+            />
           </motion.div>
 
           <motion.p
@@ -226,6 +281,7 @@ function PassportPage() {
             <span className="text-bronze">{lifespan} Years</span>
           </motion.p>
         </section>
+
 
         <section className="mt-8 px-5">
           <motion.h2
@@ -324,27 +380,45 @@ function PassportPage() {
   );
 }
 
-function Stat({
+function clampScore(n: number) {
+  return Math.max(0, Math.min(100, n));
+}
+
+function scoreTone(v: number): string {
+  if (v >= 75) return "text-verified";
+  if (v >= 45) return "text-bronze";
+  return "text-terracotta";
+}
+
+function KfiStat({
   label,
   value,
-  tone,
+  note,
 }: {
   label: string;
-  value: string;
-  tone: "good" | "bad";
+  value: number;
+  note?: string;
 }) {
   return (
-    <div className="flex flex-col items-center gap-1 py-1">
-      <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+    <div className="flex flex-col gap-0.5 py-1.5 px-2">
+      <span className="font-mono text-[9px] uppercase tracking-[0.22em] text-muted-foreground">
         {label}
       </span>
-      <span
-        className={`font-mono text-base font-medium ${
-          tone === "good" ? "text-verified" : "text-terracotta"
-        }`}
-      >
-        {value}
+      <span className={`font-mono text-lg font-medium ${scoreTone(value)}`}>
+        {Math.round(value)}
       </span>
+      {note && (
+        <span className="font-mono text-[9px] leading-tight text-muted-foreground/70">
+          {note}
+        </span>
+      )}
     </div>
   );
 }
+
+function TrendIcon({ dir }: { dir: "up" | "flat" | "down" }) {
+  if (dir === "up") return <TrendingUp className="h-3.5 w-3.5 text-verified" />;
+  if (dir === "down") return <TrendingDown className="h-3.5 w-3.5 text-terracotta" />;
+  return <Minus className="h-3.5 w-3.5 text-muted-foreground" />;
+}
+
