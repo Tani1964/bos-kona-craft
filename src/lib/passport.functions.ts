@@ -2,6 +2,8 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { computeKfiV2 } from "@/lib/passport/kfi";
+
 
 // ── Public reads ──────────────────────────────────────────────
 
@@ -109,6 +111,50 @@ export const getLiveSignals = createServerFn({ method: "GET" })
       daysSinceCare,
     };
   });
+
+// KFI v2 — server-aggregated, returns {score, trend, components}.
+// Public read: no PII; pulls 180d of wear/care to compute current vs previous window.
+export const getKfi = createServerFn({ method: "GET" })
+  .inputValidator((d: { asset_id: string }) =>
+    z.object({ asset_id: z.string().uuid() }).parse(d),
+  )
+  .handler(async ({ data }) => {
+    const windowDays = 90;
+    const since = new Date(
+      Date.now() - 2 * windowDays * 86400000,
+    ).toISOString();
+
+    const [{ data: tele }, { data: wear }, { data: care }] = await Promise.all([
+      supabaseAdmin
+        .from("asset_telemetry")
+        .select("age_days, repairs, nfc_scans")
+        .eq("asset_id", data.asset_id)
+        .maybeSingle(),
+      supabaseAdmin
+        .from("wear_events")
+        .select("started_at, ended_at, effective_stress")
+        .eq("asset_id", data.asset_id)
+        .gte("started_at", since),
+      supabaseAdmin
+        .from("care_sessions")
+        .select("started_at, ended_at, status")
+        .eq("asset_id", data.asset_id)
+        .gte("started_at", since),
+    ]);
+
+    const result = computeKfiV2({
+      wears: wear ?? [],
+      cares: care ?? [],
+      ageDays: tele?.age_days ?? 0,
+      repairs: tele?.repairs ?? 0,
+      nfcScans: tele?.nfc_scans ?? 0,
+      windowDays,
+    });
+
+    return { ...result, windowDays };
+  });
+
+
 
 
 
