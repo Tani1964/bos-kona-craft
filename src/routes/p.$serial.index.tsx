@@ -231,15 +231,46 @@ function PassportPage() {
         {assetId && isOwner && <CareWhisper assetId={assetId} />}
 
         <section className="mt-8 px-5">
-          <KfiRing score={kfi.score} stage={stage} />
+          <KfiRing score={score} stage={stage} />
+
+          {kfiData && (
+            <motion.div
+              {...fade(0.55)}
+              className="mt-4 flex items-center justify-center gap-2 font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground"
+            >
+              <TrendIcon dir={kfiData.trend.direction} />
+              <span>
+                {kfiData.trend.direction === "flat"
+                  ? "Stable vs last 90d"
+                  : `${kfiData.trend.delta > 0 ? "+" : ""}${kfiData.trend.delta} vs last 90d`}
+              </span>
+            </motion.div>
+          )}
 
           <motion.div
             {...fade(0.6)}
-            className="mt-6 grid grid-cols-3 gap-2 rounded-xl border border-white/10 bg-white/5 p-3"
+            className="mt-4 grid grid-cols-2 gap-2 rounded-xl border border-white/10 bg-white/5 p-3"
           >
-            <Stat label="Wear" value={kfi.wearImpact.toFixed(1)} tone="bad" />
-            <Stat label="Age" value={kfi.ageImpact.toFixed(1)} tone="bad" />
-            <Stat label="Care" value={`+${kfi.careImpact.toFixed(1)}`} tone="good" />
+            <KfiStat
+              label="Maintenance"
+              value={kfiData?.components.maintenanceConsistency.score ?? 0}
+              note={kfiData?.components.maintenanceConsistency.note}
+            />
+            <KfiStat
+              label="Responsiveness"
+              value={kfiData?.components.careResponsiveness.score ?? 0}
+              note={kfiData?.components.careResponsiveness.note}
+            />
+            <KfiStat
+              label="Env. Load"
+              value={kfiData?.components.environmentalLoad.score ?? 0}
+              note={kfiData?.components.environmentalLoad.note}
+            />
+            <KfiStat
+              label="Cadence"
+              value={kfiData?.components.cadenceHealth.score ?? 0}
+              note={kfiData?.components.cadenceHealth.note}
+            />
           </motion.div>
 
           <motion.p
@@ -250,6 +281,7 @@ function PassportPage() {
             <span className="text-bronze">{lifespan} Years</span>
           </motion.p>
         </section>
+
 
         <section className="mt-8 px-5">
           <motion.h2
