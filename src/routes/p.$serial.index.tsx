@@ -115,11 +115,31 @@ function PassportPage() {
     daysSinceWear: live?.daysSinceWear,
   };
 
-  const kfi = computeKfi(telemetry);
-  const stage = deriveStage(kfi.score);
+  const fetchKfi = useServerFn(getKfi);
+  const { data: kfiData } = useQuery({
+    queryKey: ["kfi", assetIdEarly],
+    queryFn: () =>
+      assetIdEarly
+        ? fetchKfi({ data: { asset_id: assetIdEarly } }).catch(() => null)
+        : Promise.resolve(null),
+    enabled: !!assetIdEarly,
+    refetchOnWindowFocus: true,
+    staleTime: 30_000,
+  });
+
+  // Fallback score from telemetry while server KFI loads (keeps SSR/first-paint stable).
+  const fallbackScore = clampScore(
+    100 -
+      Math.min(telemetry.wears * 0.6, 30) -
+      Math.min((telemetry.ageDays / 365) * 1.2, 15) +
+      Math.min(telemetry.careEntries * 3, 25),
+  );
+  const score = kfiData?.score ?? fallbackScore;
+  const stage = deriveStage(score);
   const lifespan = estimateLifespanYears(telemetry);
   const recommendation = deriveRecommendation(telemetry);
   const feed = resolveFeed(telemetry, serialParam);
+
 
   const modelName = passport?.model_name ?? "—";
   const status = passport?.status ?? "New";
