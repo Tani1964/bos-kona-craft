@@ -380,27 +380,45 @@ function PassportPage() {
   );
 }
 
-function Stat({
+function clampScore(n: number) {
+  return Math.max(0, Math.min(100, n));
+}
+
+function scoreTone(v: number): string {
+  if (v >= 75) return "text-verified";
+  if (v >= 45) return "text-bronze";
+  return "text-terracotta";
+}
+
+function KfiStat({
   label,
   value,
-  tone,
+  note,
 }: {
   label: string;
-  value: string;
-  tone: "good" | "bad";
+  value: number;
+  note?: string;
 }) {
   return (
-    <div className="flex flex-col items-center gap-1 py-1">
-      <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+    <div className="flex flex-col gap-0.5 py-1.5 px-2">
+      <span className="font-mono text-[9px] uppercase tracking-[0.22em] text-muted-foreground">
         {label}
       </span>
-      <span
-        className={`font-mono text-base font-medium ${
-          tone === "good" ? "text-verified" : "text-terracotta"
-        }`}
-      >
-        {value}
+      <span className={`font-mono text-lg font-medium ${scoreTone(value)}`}>
+        {Math.round(value)}
       </span>
+      {note && (
+        <span className="font-mono text-[9px] leading-tight text-muted-foreground/70">
+          {note}
+        </span>
+      )}
     </div>
   );
 }
+
+function TrendIcon({ dir }: { dir: "up" | "flat" | "down" }) {
+  if (dir === "up") return <TrendingUp className="h-3.5 w-3.5 text-verified" />;
+  if (dir === "down") return <TrendingDown className="h-3.5 w-3.5 text-terracotta" />;
+  return <Minus className="h-3.5 w-3.5 text-muted-foreground" />;
+}
+
