@@ -112,68 +112,99 @@ function AdminPage() {
         </button>
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr]">
-        {/* Sidebar: asset list */}
-        <aside className="border-r border-white/5 p-4 lg:h-[calc(100vh-73px)] lg:overflow-y-auto">
-          <div className="mb-3 flex items-center justify-between">
-            <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
-              Passports
-            </span>
-            <button
-              onClick={() => setNewOpen(true)}
-              className="flex h-7 w-7 items-center justify-center rounded-full bg-bronze text-stone-950"
-            >
-              <Plus className="h-4 w-4" />
-            </button>
-          </div>
+      <Tabs defaultValue="shoes" className="w-full">
+        <div className="border-b border-white/5 bg-stone-950/60 px-5 py-3">
+          <TabsList className="bg-white/5">
+            <TabsTrigger value="shoes" className="gap-2">
+              <Footprints className="h-3.5 w-3.5" /> Shoes
+            </TabsTrigger>
+            <TabsTrigger value="care" className="gap-2">
+              <Wrench className="h-3.5 w-3.5" /> Care Products
+            </TabsTrigger>
+            <TabsTrigger value="observability" className="gap-2">
+              <Activity className="h-3.5 w-3.5" /> Observability
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
-          {newOpen && (
-            <NewAssetForm
-              onCancel={() => setNewOpen(false)}
-              onCreate={(v) => create.mutate(v)}
-              busy={create.isPending}
-            />
-          )}
-
-          <ul className="mt-2 space-y-1">
-            {assets?.map((a) => (
-              <li key={a.id}>
+        <TabsContent value="shoes" className="mt-0">
+          <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr]">
+            {/* Sidebar: asset list */}
+            <aside className="border-r border-white/5 p-4 lg:h-[calc(100vh-130px)] lg:overflow-y-auto">
+              <div className="mb-3 flex items-center justify-between">
+                <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
+                  Passports
+                </span>
                 <button
-                  onClick={() => setSelectedId(a.id)}
-                  className={`w-full rounded-lg border px-3 py-2 text-left transition ${
-                    selectedId === a.id
-                      ? "border-bronze/50 bg-bronze/10"
-                      : "border-white/5 bg-white/[0.02] hover:bg-white/5"
-                  }`}
+                  onClick={() => setNewOpen(true)}
+                  className="flex h-7 w-7 items-center justify-center rounded-full bg-bronze text-stone-950"
                 >
-                  <p className="font-serif text-base leading-tight">{a.model_name}</p>
-                  <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
-                    {a.serial} · {a.status}
-                  </p>
+                  <Plus className="h-4 w-4" />
                 </button>
-              </li>
-            ))}
-            {assets?.length === 0 && (
-              <li className="rounded-lg border border-dashed border-white/10 p-4 text-center font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-                No passports yet
-              </li>
-            )}
-          </ul>
-        </aside>
+              </div>
 
-        {/* Editor */}
-        <main className="p-5 lg:p-8">
-          {selectedId ? (
-            <AssetEditor id={selectedId} />
-          ) : (
-            <div className="flex h-full min-h-[40vh] items-center justify-center rounded-2xl border border-dashed border-white/10">
-              <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-muted-foreground">
-                Select a passport to edit
-              </p>
-            </div>
-          )}
-        </main>
-      </div>
+              {newOpen && (
+                <NewAssetForm
+                  onCancel={() => setNewOpen(false)}
+                  onCreate={(v) => create.mutate(v)}
+                  busy={create.isPending}
+                />
+              )}
+
+              <ul className="mt-2 space-y-1">
+                {assets?.map((a) => (
+                  <li key={a.id}>
+                    <button
+                      onClick={() => setSelectedId(a.id)}
+                      className={`w-full rounded-lg border px-3 py-2 text-left transition ${
+                        selectedId === a.id
+                          ? "border-bronze/50 bg-bronze/10"
+                          : "border-white/5 bg-white/[0.02] hover:bg-white/5"
+                      }`}
+                    >
+                      <p className="font-serif text-base leading-tight">{a.model_name}</p>
+                      <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+                        {a.serial} · {a.status}
+                      </p>
+                    </button>
+                  </li>
+                ))}
+                {assets?.length === 0 && (
+                  <li className="rounded-lg border border-dashed border-white/10 p-4 text-center font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                    No passports yet
+                  </li>
+                )}
+              </ul>
+            </aside>
+
+            {/* Editor */}
+            <main className="p-5 lg:p-8">
+              {selectedId ? (
+                <AssetEditor id={selectedId} />
+              ) : (
+                <div className="flex h-full min-h-[40vh] items-center justify-center rounded-2xl border border-dashed border-white/10">
+                  <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-muted-foreground">
+                    Select a passport to edit
+                  </p>
+                </div>
+              )}
+            </main>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="care" className="mt-0">
+          <main className="p-5 lg:p-8">
+            <CareToolsAdmin />
+          </main>
+        </TabsContent>
+
+        <TabsContent value="observability" className="mt-0">
+          <main className="p-5 lg:p-8">
+            <ObservabilityAdmin />
+          </main>
+        </TabsContent>
+      </Tabs>
+
     </div>
   );
 }
