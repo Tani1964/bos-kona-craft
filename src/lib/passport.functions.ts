@@ -467,3 +467,96 @@ export const isCurrentUserAdmin = createServerFn({ method: "GET" })
       .maybeSingle();
     return { admin: !!data };
   });
+
+// ── Admin: care tools catalog ─────────────────────────────────
+
+export const adminListCareTools = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context);
+    const { data, error } = await supabaseAdmin
+      .from("care_tools")
+      .select("tool_id, tool_name, tool_type, kfi_weight, active, created_at")
+      .order("active", { ascending: false })
+      .order("created_at", { ascending: true });
+    if (error) throw new Error(error.message);
+    return data ?? [];
+  });
+
+const CareToolSchema = z.object({
+  tool_id: z
+    .string()
+    .trim()
+    .min(1)
+    .max(60)
+    .regex(/^[a-z0-9_-]+$/i, "letters/numbers/_/- only"),
+  tool_name: z.string().trim().min(1).max(120),
+  tool_type: z.string().trim().min(1).max(60),
+  kfi_weight: z.number().min(0).max(10),
+  active: z.boolean(),
+});
+
+export const adminUpsertCareTool = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: any) => CareToolSchema.parse(d))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { error } = await supabaseAdmin
+      .from("care_tools")
+      .upsert({ ...data, tool_id: data.tool_id.toLowerCase() }, { onConflict: "tool_id" });
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const adminSetCareToolActive = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: any) =>
+    z.object({ tool_id: z.string().min(1).max(60), active: z.boolean() }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { error } = await supabaseAdmin
+      .from("care_tools")
+      .update({ active: data.active })
+      .eq("tool_id", data.tool_id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+// ── Admin: observability (read-only) ──────────────────────────
+
+export const adminListWearEvents = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: any) =>
+    z.object({ limit: z.number().int().min(1).max(200).default(100) }).parse(d ?? {}),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { data: rows, error } = await supabaseAdmin
+      .from("wear_events")
+      .select(
+        "id, asset_id, owner_phone, started_at, ended_at, transport_mode, rain_probability, effective_stress, weather_snapshot, assets(serial, model_name)",
+      )
+      .order("started_at", { ascending: false })
+      .limit(data.limit);
+    if (error) throw new Error(error.message);
+    return rows ?? [];
+  });
+
+export const adminListCareInsights = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: any) =>
+    z.object({ limit: z.number().int().min(1).max(200).default(100) }).parse(d ?? {}),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { data: rows, error } = await supabaseAdmin
+      .from("care_insights")
+      .select(
+        "id, asset_id, owner_phone, kind, body, shown_at, created_at, assets(serial, model_name)",
+      )
+      .order("created_at", { ascending: false })
+      .limit(data.limit);
+    if (error) throw new Error(error.message);
+    return rows ?? [];
+  });
