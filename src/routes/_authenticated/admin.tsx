@@ -17,6 +17,11 @@ import {
   adminListOwnership,
   adminAddOwnership,
   adminDeleteOwnership,
+  adminListCareTools,
+  adminUpsertCareTool,
+  adminSetCareToolActive,
+  adminListWearEvents,
+  adminListCareInsights,
 } from "@/lib/passport.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -38,6 +43,14 @@ import {
   Tag,
   StickyNote,
   History,
+  Wrench,
+  Activity,
+  Footprints,
+  Sparkles,
+  Cloud,
+  CloudRain,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
