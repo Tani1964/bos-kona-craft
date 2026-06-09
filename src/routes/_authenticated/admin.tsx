@@ -915,3 +915,421 @@ function OwnershipTimeline({
     </ol>
   );
 }
+
+// ── Care Products (care_tools catalog) ────────────────────────
+
+function CareToolsAdmin() {
+  const qc = useQueryClient();
+  const { data: tools, isLoading } = useQuery({
+    queryKey: ["admin", "careTools"],
+    queryFn: () => adminListCareTools(),
+  });
+  const [adding, setAdding] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  const upsert = useMutation({
+    mutationFn: (d: any) => adminUpsertCareTool({ data: d }),
+    onSuccess: () => {
+      toast.success("Saved");
+      qc.invalidateQueries({ queryKey: ["admin", "careTools"] });
+      setAdding(false);
+      setEditingId(null);
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const toggle = useMutation({
+    mutationFn: (d: { tool_id: string; active: boolean }) =>
+      adminSetCareToolActive({ data: d }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin", "careTools"] }),
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  return (
+    <div className="max-w-4xl">
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div>
+          <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-bronze">
+            Catalog · Care Products
+          </p>
+          <h2 className="mt-1 font-serif text-3xl leading-tight">Care Tools</h2>
+          <p className="mt-2 max-w-xl font-mono text-[11px] text-muted-foreground">
+            The products Bos' Kọ́nà ships and references in care sessions. Mark old SKUs
+            inactive when superseded — owners' historical records stay intact.
+          </p>
+        </div>
+        <button
+          onClick={() => {
+            setAdding(true);
+            setEditingId(null);
+          }}
+          className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-bronze px-4 py-2 text-sm font-bold text-stone-950"
+        >
+          <Plus className="h-4 w-4" /> New tool
+        </button>
+      </div>
+
+      {adding && (
+        <CareToolForm
+          onSubmit={(v) => upsert.mutate(v)}
+          onCancel={() => setAdding(false)}
+          busy={upsert.isPending}
+        />
+      )}
+
+      {isLoading ? (
+        <p className="font-mono text-xs text-muted-foreground">Loading…</p>
+      ) : tools && tools.length > 0 ? (
+        <div className="space-y-2">
+          {tools.map((t: any) =>
+            editingId === t.tool_id ? (
+              <CareToolForm
+                key={t.tool_id}
+                initial={t}
+                onSubmit={(v) => upsert.mutate(v)}
+                onCancel={() => setEditingId(null)}
+                busy={upsert.isPending}
+              />
+            ) : (
+              <div
+                key={t.tool_id}
+                className={`flex items-center gap-4 rounded-xl border p-4 transition ${
+                  t.active
+                    ? "border-white/10 bg-white/[0.02]"
+                    : "border-white/5 bg-white/[0.01] opacity-60"
+                }`}
+              >
+                <Wrench className="h-4 w-4 text-bronze" />
+                <div className="min-w-0 flex-1">
+                  <p className="font-serif text-base leading-tight">{t.tool_name}</p>
+                  <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+                    {t.tool_id} · {t.tool_type} · weight {t.kfi_weight}
+                  </p>
+                </div>
+                <span
+                  className={`rounded-full px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.2em] ${
+                    t.active
+                      ? "bg-emerald-400/15 text-emerald-300"
+                      : "bg-white/10 text-muted-foreground"
+                  }`}
+                >
+                  {t.active ? "Active" : "Discontinued"}
+                </span>
+                <button
+                  onClick={() => setEditingId(t.tool_id)}
+                  className="rounded-md border border-white/10 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.2em] hover:bg-white/5"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() =>
+                    toggle.mutate({ tool_id: t.tool_id, active: !t.active })
+                  }
+                  className="rounded-md border border-white/10 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.2em] hover:bg-white/5"
+                >
+                  {t.active ? "Retire" : "Reactivate"}
+                </button>
+              </div>
+            ),
+          )}
+        </div>
+      ) : (
+        <div className="rounded-xl border border-dashed border-white/10 p-8 text-center">
+          <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+            No care tools yet
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CareToolForm({
+  initial,
+  onSubmit,
+  onCancel,
+  busy,
+}: {
+  initial?: any;
+  onSubmit: (v: any) => void;
+  onCancel: () => void;
+  busy: boolean;
+}) {
+  const [v, setV] = useState({
+    tool_id: initial?.tool_id ?? "",
+    tool_name: initial?.tool_name ?? "",
+    tool_type: initial?.tool_type ?? "",
+    kfi_weight: initial?.kfi_weight ?? 1,
+    active: initial?.active ?? true,
+  });
+  const editing = !!initial;
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        onSubmit({ ...v, kfi_weight: Number(v.kfi_weight) });
+      }}
+      className="mb-4 grid gap-3 rounded-xl border border-bronze/30 bg-bronze/5 p-4 sm:grid-cols-2"
+    >
+      {field(
+        "Tool ID (slug)",
+        <input
+          required
+          disabled={editing}
+          className={inputCls + " disabled:opacity-60"}
+          value={v.tool_id}
+          placeholder="airform_v2"
+          onChange={(e) => setV({ ...v, tool_id: e.target.value })}
+        />,
+      )}
+      {field(
+        "Display name",
+        <input
+          required
+          className={inputCls}
+          value={v.tool_name}
+          placeholder="AirForm v2"
+          onChange={(e) => setV({ ...v, tool_name: e.target.value })}
+        />,
+      )}
+      {field(
+        "Type",
+        <input
+          required
+          className={inputCls}
+          value={v.tool_type}
+          placeholder="conditioner / brush / airform / cloth"
+          onChange={(e) => setV({ ...v, tool_type: e.target.value })}
+        />,
+      )}
+      {field(
+        "KFI weight (0–10)",
+        <input
+          type="number"
+          step="0.1"
+          min="0"
+          max="10"
+          className={inputCls}
+          value={v.kfi_weight}
+          onChange={(e) => setV({ ...v, kfi_weight: e.target.value as any })}
+        />,
+      )}
+      <label className="flex items-center gap-2 sm:col-span-2">
+        <input
+          type="checkbox"
+          checked={v.active}
+          onChange={(e) => setV({ ...v, active: e.target.checked })}
+        />
+        <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+          Active (available in current catalog)
+        </span>
+      </label>
+      <div className="flex gap-2 sm:col-span-2">
+        <button
+          disabled={busy}
+          className="inline-flex items-center gap-2 rounded-lg bg-bronze px-4 py-2 text-sm font-bold text-stone-950 disabled:opacity-50"
+        >
+          <Save className="h-4 w-4" /> {busy ? "Saving…" : editing ? "Save" : "Create"}
+        </button>
+        <button
+          type="button"
+          onClick={onCancel}
+          className="rounded-lg border border-white/10 px-4 py-2 text-sm"
+        >
+          Cancel
+        </button>
+      </div>
+    </form>
+  );
+}
+
+// ── Observability (wear_events + care_insights, read-only) ────
+
+function ObservabilityAdmin() {
+  return (
+    <div className="max-w-5xl">
+      <div className="mb-6">
+        <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-bronze">
+          Read-only · System health
+        </p>
+        <h2 className="mt-1 font-serif text-3xl leading-tight">Observability</h2>
+        <p className="mt-2 max-w-2xl font-mono text-[11px] text-muted-foreground">
+          Watch the system work. Tune the stress formula and CareWhisper prompts based
+          on real owner activity — never edit or delete owner data from here.
+        </p>
+      </div>
+
+      <Tabs defaultValue="wear">
+        <TabsList className="mb-4 bg-white/5">
+          <TabsTrigger value="wear" className="gap-2">
+            <Footprints className="h-3.5 w-3.5" /> Wear events
+          </TabsTrigger>
+          <TabsTrigger value="insights" className="gap-2">
+            <Sparkles className="h-3.5 w-3.5" /> Care insights
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="wear">
+          <WearEventsFeed />
+        </TabsContent>
+        <TabsContent value="insights">
+          <CareInsightsFeed />
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
+
+function maskPhone(p?: string | null) {
+  if (!p) return "—";
+  if (p.length < 6) return p;
+  return `${p.slice(0, 4)}…${p.slice(-3)}`;
+}
+
+function fmtDateTime(s?: string | null) {
+  if (!s) return "—";
+  const d = new Date(s);
+  return `${d.toLocaleDateString(undefined, { month: "short", day: "2-digit" })} ${d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}`;
+}
+
+function WearEventsFeed() {
+  const { data, isLoading } = useQuery({
+    queryKey: ["admin", "wearEvents"],
+    queryFn: () => adminListWearEvents({ data: { limit: 100 } }),
+  });
+
+  if (isLoading) return <p className="font-mono text-xs text-muted-foreground">Loading…</p>;
+  if (!data || data.length === 0)
+    return (
+      <div className="rounded-xl border border-dashed border-white/10 p-8 text-center font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+        No wear events recorded yet
+      </div>
+    );
+
+  return (
+    <div className="overflow-hidden rounded-xl border border-white/10">
+      <table className="w-full text-left text-sm">
+        <thead className="bg-white/5 font-mono text-[9px] uppercase tracking-[0.25em] text-muted-foreground">
+          <tr>
+            <th className="px-3 py-2">Started</th>
+            <th className="px-3 py-2">Asset</th>
+            <th className="px-3 py-2">Owner</th>
+            <th className="px-3 py-2">Mode</th>
+            <th className="px-3 py-2">Weather</th>
+            <th className="px-3 py-2 text-right">Rain</th>
+            <th className="px-3 py-2 text-right">Stress</th>
+            <th className="px-3 py-2">Duration</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.map((w: any) => {
+            const cond = w.weather_snapshot?.condition ?? "—";
+            const temp = w.weather_snapshot?.temp_c;
+            const dur = w.ended_at
+              ? `${Math.round((new Date(w.ended_at).getTime() - new Date(w.started_at).getTime()) / 60000)}m`
+              : "open";
+            const rain = w.rain_probability ?? 0;
+            return (
+              <tr key={w.id} className="border-t border-white/5">
+                <td className="px-3 py-2 font-mono text-[11px] text-muted-foreground">
+                  {fmtDateTime(w.started_at)}
+                </td>
+                <td className="px-3 py-2">
+                  <p className="font-serif text-[13px] leading-tight">
+                    {w.assets?.model_name ?? "—"}
+                  </p>
+                  <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
+                    {w.assets?.serial ?? "—"}
+                  </p>
+                </td>
+                <td className="px-3 py-2 font-mono text-[11px]">{maskPhone(w.owner_phone)}</td>
+                <td className="px-3 py-2 font-mono text-[10px] uppercase tracking-[0.15em] text-muted-foreground">
+                  {w.transport_mode}
+                </td>
+                <td className="px-3 py-2">
+                  <span className="inline-flex items-center gap-1.5 font-mono text-[11px] text-muted-foreground">
+                    {rain > 0.4 ? (
+                      <CloudRain className="h-3 w-3 text-sky-300" />
+                    ) : (
+                      <Cloud className="h-3 w-3" />
+                    )}
+                    {cond}
+                    {typeof temp === "number" ? ` · ${Math.round(temp)}°` : ""}
+                  </span>
+                </td>
+                <td className="px-3 py-2 text-right font-mono text-[11px]">
+                  {Math.round(rain * 100)}%
+                </td>
+                <td className="px-3 py-2 text-right font-mono text-[11px] text-bronze">
+                  {w.effective_stress != null ? Number(w.effective_stress).toFixed(2) : "—"}
+                </td>
+                <td className="px-3 py-2 font-mono text-[10px] text-muted-foreground">{dur}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function CareInsightsFeed() {
+  const { data, isLoading } = useQuery({
+    queryKey: ["admin", "careInsights"],
+    queryFn: () => adminListCareInsights({ data: { limit: 100 } }),
+  });
+
+  if (isLoading) return <p className="font-mono text-xs text-muted-foreground">Loading…</p>;
+  if (!data || data.length === 0)
+    return (
+      <div className="rounded-xl border border-dashed border-white/10 p-8 text-center font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+        No insights generated yet
+      </div>
+    );
+
+  const KIND_META: Record<string, { label: string; color: string }> = {
+    post_wear: { label: "Post-wear", color: "text-sky-300" },
+    pre_wear_trigger: { label: "Pre-wear", color: "text-amber-300" },
+    preventive: { label: "Preventive", color: "text-emerald-300" },
+    maintenance_overdue: { label: "Overdue", color: "text-terracotta" },
+  };
+
+  return (
+    <div className="space-y-2">
+      {data.map((i: any) => {
+        const meta = KIND_META[i.kind] ?? { label: i.kind, color: "text-muted-foreground" };
+        const shown = !!i.shown_at;
+        return (
+          <div
+            key={i.id}
+            className="flex items-start gap-3 rounded-xl border border-white/10 bg-white/[0.02] p-4"
+          >
+            <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-bronze" />
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className={`font-mono text-[9px] uppercase tracking-[0.3em] ${meta.color}`}>
+                  {meta.label}
+                </span>
+                <span className="font-mono text-[10px] text-muted-foreground">
+                  {i.assets?.model_name ?? "—"} · {i.assets?.serial ?? "—"}
+                </span>
+                <span className="font-mono text-[10px] text-muted-foreground">
+                  · {maskPhone(i.owner_phone)}
+                </span>
+                <span className="ml-auto inline-flex items-center gap-1 font-mono text-[10px] text-muted-foreground">
+                  {shown ? (
+                    <Eye className="h-3 w-3 text-emerald-300" />
+                  ) : (
+                    <EyeOff className="h-3 w-3" />
+                  )}
+                  {fmtDateTime(i.created_at)}
+                </span>
+              </div>
+              <p className="mt-1.5 font-serif text-sm leading-snug text-foreground">{i.body}</p>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
