@@ -84,13 +84,14 @@ export const Route = createFileRoute("/api/public/hooks/generate-insights")({
           });
         }
 
-        const inserts: Array<{
+        type InsightInsert = {
           asset_id: string;
           owner_phone: string;
           kind: string;
           body: string;
-          source_ref: Record<string, unknown>;
-        }> = [];
+          source_ref: any;
+        };
+        const inserts: InsightInsert[] = [];
 
         let preventiveCount = 0;
         let overdueCount = 0;

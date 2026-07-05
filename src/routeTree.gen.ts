@@ -24,6 +24,7 @@ import { Route as PSerialLongevityRouteImport } from './routes/p.$serial.longevi
 import { Route as PSerialDocumentaryRouteImport } from './routes/p.$serial.documentary'
 import { Route as ApiPublicStorefrontWebhookRouteImport } from './routes/api/public/storefront-webhook'
 import { Route as ApiPublicNfcTapRouteImport } from './routes/api/public/nfc-tap'
+import { Route as ApiPublicHooksGenerateInsightsRouteImport } from './routes/api/public/hooks/generate-insights'
 
 const SystemRoute = SystemRouteImport.update({
   id: '/system',
@@ -100,6 +101,12 @@ const ApiPublicNfcTapRoute = ApiPublicNfcTapRouteImport.update({
   path: '/api/public/nfc-tap',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicHooksGenerateInsightsRoute =
+  ApiPublicHooksGenerateInsightsRouteImport.update({
+    id: '/api/public/hooks/generate-insights',
+    path: '/api/public/hooks/generate-insights',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -116,6 +123,7 @@ export interface FileRoutesByFullPath {
   '/p/$serial/provenance': typeof PSerialProvenanceRoute
   '/p/$serial/timeline': typeof PSerialTimelineRoute
   '/p/$serial/': typeof PSerialIndexRoute
+  '/api/public/hooks/generate-insights': typeof ApiPublicHooksGenerateInsightsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -132,6 +140,7 @@ export interface FileRoutesByTo {
   '/p/$serial/provenance': typeof PSerialProvenanceRoute
   '/p/$serial/timeline': typeof PSerialTimelineRoute
   '/p/$serial': typeof PSerialIndexRoute
+  '/api/public/hooks/generate-insights': typeof ApiPublicHooksGenerateInsightsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -150,6 +159,7 @@ export interface FileRoutesById {
   '/p/$serial/provenance': typeof PSerialProvenanceRoute
   '/p/$serial/timeline': typeof PSerialTimelineRoute
   '/p/$serial/': typeof PSerialIndexRoute
+  '/api/public/hooks/generate-insights': typeof ApiPublicHooksGenerateInsightsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -168,6 +178,7 @@ export interface FileRouteTypes {
     | '/p/$serial/provenance'
     | '/p/$serial/timeline'
     | '/p/$serial/'
+    | '/api/public/hooks/generate-insights'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -184,6 +195,7 @@ export interface FileRouteTypes {
     | '/p/$serial/provenance'
     | '/p/$serial/timeline'
     | '/p/$serial'
+    | '/api/public/hooks/generate-insights'
   id:
     | '__root__'
     | '/'
@@ -201,6 +213,7 @@ export interface FileRouteTypes {
     | '/p/$serial/provenance'
     | '/p/$serial/timeline'
     | '/p/$serial/'
+    | '/api/public/hooks/generate-insights'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -218,6 +231,7 @@ export interface RootRouteChildren {
   PSerialProvenanceRoute: typeof PSerialProvenanceRoute
   PSerialTimelineRoute: typeof PSerialTimelineRoute
   PSerialIndexRoute: typeof PSerialIndexRoute
+  ApiPublicHooksGenerateInsightsRoute: typeof ApiPublicHooksGenerateInsightsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -327,6 +341,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicNfcTapRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/generate-insights': {
+      id: '/api/public/hooks/generate-insights'
+      path: '/api/public/hooks/generate-insights'
+      fullPath: '/api/public/hooks/generate-insights'
+      preLoaderRoute: typeof ApiPublicHooksGenerateInsightsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -357,6 +378,7 @@ const rootRouteChildren: RootRouteChildren = {
   PSerialProvenanceRoute: PSerialProvenanceRoute,
   PSerialTimelineRoute: PSerialTimelineRoute,
   PSerialIndexRoute: PSerialIndexRoute,
+  ApiPublicHooksGenerateInsightsRoute: ApiPublicHooksGenerateInsightsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
