@@ -1207,6 +1207,16 @@ function WearEventsFeed() {
     );
 
   return (
+    <>
+      <StressStatsPanel events={data} />
+      {renderWearTable(data)}
+    </>
+  );
+}
+
+function renderWearTable(data: any[]) {
+  return (
+
     <div className="overflow-hidden rounded-xl border border-white/10">
       <table className="w-full text-left text-sm">
         <thead className="bg-white/5 font-mono text-[9px] uppercase tracking-[0.25em] text-muted-foreground">
