@@ -1283,6 +1283,154 @@ function renderWearTable(data: any[]) {
   );
 }
 
+function StressStatsPanel({ events }: { events: any[] }) {
+  const closed = events.filter((e) => e.effective_stress != null);
+  const stresses = closed.map((e) => Number(e.effective_stress)).sort((a, b) => a - b);
+  const avg = stresses.length ? stresses.reduce((a, b) => a + b, 0) / stresses.length : 0;
+  const p = (q: number) =>
+    stresses.length ? stresses[Math.min(stresses.length - 1, Math.floor(stresses.length * q))] : 0;
+
+  const byMode = new Map<string, { count: number; sum: number }>();
+  for (const e of closed) {
+    const k = e.transport_mode ?? "unknown";
+    const cur = byMode.get(k) ?? { count: 0, sum: 0 };
+    cur.count += 1;
+    cur.sum += Number(e.effective_stress);
+    byMode.set(k, cur);
+  }
+
+  const rainEvents = events.filter((e) => (e.rain_probability ?? 0) > 0.4);
+  const humidities = events
+    .map((e) => Number(e.weather_snapshot?.humidity))
+    .filter((n) => Number.isFinite(n));
+  const avgHumidity = humidities.length
+    ? humidities.reduce((a, b) => a + b, 0) / humidities.length
+    : null;
+
+  const open = events.length - closed.length;
+  const maxStress = stresses.length ? stresses[stresses.length - 1] : 1;
+  const buckets = [0, 0.5, 1, 1.5, 2, 3, 5];
+  const hist = buckets.map((lo, i) => {
+    const hi = buckets[i + 1] ?? Infinity;
+    return {
+      label: hi === Infinity ? `${lo}+` : `${lo}–${hi}`,
+      count: stresses.filter((s) => s >= lo && s < hi).length,
+    };
+  });
+  const histMax = Math.max(1, ...hist.map((b) => b.count));
+
+  return (
+    <div className="mb-4 grid gap-3 md:grid-cols-[1.4fr_1fr_1fr]">
+      <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
+        <p className="font-mono text-[9px] uppercase tracking-[0.3em] text-bronze">
+          Effective stress · last {events.length} events
+        </p>
+        <div className="mt-2 flex items-baseline gap-4">
+          <div>
+            <p className="font-serif text-3xl leading-none text-foreground">{avg.toFixed(2)}</p>
+            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+              avg
+            </p>
+          </div>
+          <div>
+            <p className="font-serif text-lg leading-none">{p(0.5).toFixed(2)}</p>
+            <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
+              p50
+            </p>
+          </div>
+          <div>
+            <p className="font-serif text-lg leading-none">{p(0.9).toFixed(2)}</p>
+            <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
+              p90
+            </p>
+          </div>
+          <div className="ml-auto text-right">
+            <p className="font-mono text-[10px] text-muted-foreground">
+              {closed.length} closed · {open} open
+            </p>
+            <p className="font-mono text-[10px] text-muted-foreground">
+              max {maxStress.toFixed(2)}
+            </p>
+          </div>
+        </div>
+        <div className="mt-4 flex items-end gap-1.5">
+          {hist.map((b) => (
+            <div key={b.label} className="flex flex-1 flex-col items-center gap-1">
+              <div
+                className="w-full rounded-t bg-bronze/60"
+                style={{ height: `${(b.count / histMax) * 60 + 2}px` }}
+                title={`${b.count} events`}
+              />
+              <span className="font-mono text-[8px] uppercase tracking-[0.15em] text-muted-foreground">
+                {b.label}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
+        <p className="font-mono text-[9px] uppercase tracking-[0.3em] text-bronze">
+          By transport mode
+        </p>
+        <ul className="mt-3 space-y-2">
+          {[...byMode.entries()].map(([mode, s]) => (
+            <li key={mode} className="flex items-center justify-between font-mono text-[11px]">
+              <span className="uppercase tracking-[0.2em] text-muted-foreground">{mode}</span>
+              <span className="text-foreground">
+                {(s.sum / s.count).toFixed(2)}{" "}
+                <span className="text-muted-foreground">avg · {s.count}</span>
+              </span>
+            </li>
+          ))}
+          {byMode.size === 0 && (
+            <li className="font-mono text-[10px] text-muted-foreground">No closed events</li>
+          )}
+        </ul>
+      </div>
+
+      <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
+        <p className="font-mono text-[9px] uppercase tracking-[0.3em] text-bronze">
+          Weather signal
+        </p>
+        <div className="mt-3 space-y-2 font-mono text-[11px]">
+          <div className="flex items-center justify-between">
+            <span className="uppercase tracking-[0.2em] text-muted-foreground">Rain &gt; 40%</span>
+            <span>
+              {rainEvents.length}{" "}
+              <span className="text-muted-foreground">
+                / {events.length} ({Math.round((rainEvents.length / events.length) * 100)}%)
+              </span>
+            </span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="uppercase tracking-[0.2em] text-muted-foreground">Avg humidity</span>
+            <span>
+              {avgHumidity != null ? `${Math.round(avgHumidity)}%` : "—"}
+            </span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="uppercase tracking-[0.2em] text-muted-foreground">
+              Rain avg stress
+            </span>
+            <span>
+              {rainEvents.filter((e) => e.effective_stress != null).length
+                ? (
+                    rainEvents
+                      .filter((e) => e.effective_stress != null)
+                      .reduce((a, e) => a + Number(e.effective_stress), 0) /
+                    rainEvents.filter((e) => e.effective_stress != null).length
+                  ).toFixed(2)
+                : "—"}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
 function CareInsightsFeed() {
   const { data, isLoading } = useQuery({
     queryKey: ["admin", "careInsights"],
