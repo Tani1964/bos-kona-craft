@@ -52,6 +52,9 @@ import {
   CloudRain,
   Eye,
   EyeOff,
+  Timer,
+  CheckCircle2,
+  XCircle,
 } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
