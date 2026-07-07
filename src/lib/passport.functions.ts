@@ -560,3 +560,29 @@ export const adminListCareInsights = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
     return rows ?? [];
   });
+
+export const adminListCronRuns = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: any) =>
+    z.object({ limit: z.number().int().min(1).max(200).default(50) }).parse(d ?? {}),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { data: rows, error } = await supabaseAdmin.rpc("admin_cron_runs", {
+      _limit: data.limit,
+    });
+    if (error) throw new Error(error.message);
+    return (rows ?? []) as Array<{
+      jobid: number;
+      jobname: string | null;
+      schedule: string | null;
+      active: boolean | null;
+      runid: number | null;
+      status: string | null;
+      return_message: string | null;
+      start_time: string | null;
+      end_time: string | null;
+      duration_ms: number | null;
+    }>;
+  });
+
