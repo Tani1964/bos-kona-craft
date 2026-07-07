@@ -98,20 +98,23 @@ export const Route = createFileRoute("/api/public/nfc-tap")({
           });
         }
 
-        // 3. Verify the phone matches a real ownership of this asset
-        const { data: ownership } = await supabaseAdmin
+        // 3. Verify the phone is the CURRENT (latest) owner of this asset.
+        //    A previous owner whose phone still appears in history must not be
+        //    able to record care events after ownership transfers.
+        const { data: latestOwn } = await supabaseAdmin
           .from("ownership_records")
-          .select("id")
+          .select("owner_phone")
           .eq("asset_id", asset.id)
-          .eq("owner_phone", data.owner_phone)
+          .order("acquired_at", { ascending: false })
           .limit(1)
           .maybeSingle();
-        if (!ownership) {
+        if (!latestOwn || latestOwn.owner_phone !== data.owner_phone) {
           return new Response(
-            JSON.stringify({ error: "Phone is not a registered owner of this asset" }),
+            JSON.stringify({ error: "Phone is not the current owner of this asset" }),
             { status: 403 },
           );
         }
+
 
         // 4. Find an open session within the 15-minute window
         const windowStart = new Date(
