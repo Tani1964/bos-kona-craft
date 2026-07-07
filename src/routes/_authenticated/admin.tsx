@@ -22,6 +22,7 @@ import {
   adminSetCareToolActive,
   adminListWearEvents,
   adminListCareInsights,
+  adminListCronRuns,
 } from "@/lib/passport.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -51,6 +52,9 @@ import {
   CloudRain,
   Eye,
   EyeOff,
+  Timer,
+  CheckCircle2,
+  XCircle,
 } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
@@ -1167,6 +1171,9 @@ function ObservabilityAdmin() {
           <TabsTrigger value="insights" className="gap-2">
             <Sparkles className="h-3.5 w-3.5" /> Care insights
           </TabsTrigger>
+          <TabsTrigger value="cron" className="gap-2">
+            <Timer className="h-3.5 w-3.5" /> Cron runs
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="wear">
@@ -1174,6 +1181,9 @@ function ObservabilityAdmin() {
         </TabsContent>
         <TabsContent value="insights">
           <CareInsightsFeed />
+        </TabsContent>
+        <TabsContent value="cron">
+          <CronRunsFeed />
         </TabsContent>
       </Tabs>
     </div>
@@ -1491,3 +1501,144 @@ function CareInsightsFeed() {
     </div>
   );
 }
+
+function fmtDuration(ms?: number | null) {
+  if (ms == null || !Number.isFinite(ms)) return "—";
+  if (ms < 1000) return `${Math.round(ms)}ms`;
+  return `${(ms / 1000).toFixed(2)}s`;
+}
+
+function CronRunsFeed() {
+  const { data, isLoading, refetch, isFetching } = useQuery({
+    queryKey: ["admin", "cronRuns"],
+    queryFn: () => adminListCronRuns({ data: { limit: 50 } }),
+    refetchInterval: 30_000,
+  });
+
+  if (isLoading)
+    return <p className="font-mono text-xs text-muted-foreground">Loading…</p>;
+  if (!data || data.length === 0)
+    return (
+      <div className="rounded-xl border border-dashed border-white/10 p-8 text-center font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+        No scheduled jobs registered
+      </div>
+    );
+
+  // Summary per job
+  const byJob = new Map<
+    number,
+    {
+      jobname: string | null;
+      schedule: string | null;
+      active: boolean | null;
+      runs: typeof data;
+    }
+  >();
+  for (const r of data) {
+    const key = r.jobid;
+    if (!byJob.has(key)) {
+      byJob.set(key, {
+        jobname: r.jobname,
+        schedule: r.schedule,
+        active: r.active,
+        runs: [],
+      });
+    }
+    if (r.runid != null) byJob.get(key)!.runs.push(r);
+  }
+
+  return (
+    <div className="space-y-5">
+      <div className="flex items-center justify-between">
+        <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+          {byJob.size} job{byJob.size === 1 ? "" : "s"} · {data.filter((r) => r.runid != null).length} recent runs
+        </p>
+        <button
+          onClick={() => refetch()}
+          disabled={isFetching}
+          className="rounded-md border border-white/10 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground transition hover:bg-white/5 disabled:opacity-50"
+        >
+          {isFetching ? "Refreshing…" : "Refresh"}
+        </button>
+      </div>
+
+      {Array.from(byJob.entries()).map(([jobid, job]) => {
+        const lastRun = job.runs[0];
+        const successCount = job.runs.filter((r) => r.status === "succeeded").length;
+        const failCount = job.runs.filter(
+          (r) => r.status && r.status !== "succeeded",
+        ).length;
+        return (
+          <div
+            key={jobid}
+            className="overflow-hidden rounded-xl border border-white/10"
+          >
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 bg-white/5 px-4 py-3">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`h-2 w-2 rounded-full ${job.active ? "bg-emerald-400" : "bg-muted-foreground/40"}`}
+                  />
+                  <span className="font-serif text-base">
+                    {job.jobname ?? `job #${jobid}`}
+                  </span>
+                </div>
+                <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                  {job.schedule ?? "—"} · id {jobid}
+                </p>
+              </div>
+              <div className="flex items-center gap-4 font-mono text-[10px] uppercase tracking-[0.2em]">
+                <span className="flex items-center gap-1 text-emerald-400">
+                  <CheckCircle2 className="h-3 w-3" /> {successCount}
+                </span>
+                <span
+                  className={`flex items-center gap-1 ${failCount ? "text-rose-400" : "text-muted-foreground/60"}`}
+                >
+                  <XCircle className="h-3 w-3" /> {failCount}
+                </span>
+                <span className="text-muted-foreground">
+                  last{" "}
+                  {lastRun ? fmtDateTime(lastRun.start_time) : "never"}
+                </span>
+              </div>
+            </div>
+
+            {job.runs.length === 0 ? (
+              <div className="px-4 py-6 text-center font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+                No runs recorded yet
+              </div>
+            ) : (
+              <div className="divide-y divide-white/5">
+                {job.runs.slice(0, 10).map((r) => {
+                  const ok = r.status === "succeeded";
+                  return (
+                    <div
+                      key={r.runid ?? Math.random()}
+                      className="grid grid-cols-[auto,1fr,auto,auto] items-center gap-3 px-4 py-2.5"
+                    >
+                      {ok ? (
+                        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
+                      ) : (
+                        <XCircle className="h-3.5 w-3.5 text-rose-400" />
+                      )}
+                      <span className="truncate font-mono text-[11px] text-foreground/80">
+                        {r.return_message ?? r.status ?? "—"}
+                      </span>
+                      <span className="font-mono text-[10px] text-muted-foreground">
+                        {fmtDuration(r.duration_ms)}
+                      </span>
+                      <span className="font-mono text-[10px] text-muted-foreground">
+                        {fmtDateTime(r.start_time)}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
