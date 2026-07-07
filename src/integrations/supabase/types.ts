@@ -555,6 +555,21 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_cron_runs: {
+        Args: { _limit?: number }
+        Returns: {
+          active: boolean
+          duration_ms: number
+          end_time: string
+          jobid: number
+          jobname: string
+          return_message: string
+          runid: number
+          schedule: string
+          start_time: string
+          status: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
