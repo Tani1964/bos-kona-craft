@@ -922,6 +922,11 @@ function OwnershipTimeline({
 
 // ── Care Products (care_tools catalog) ────────────────────────
 
+const tagUrl = (toolId: string) =>
+  `${typeof window !== "undefined" ? window.location.origin : ""}/tap?tool=${encodeURIComponent(toolId)}`;
+
+
+
 function CareToolsAdmin() {
   const qc = useQueryClient();
   const { data: tools, isLoading } = useQuery({
@@ -1009,7 +1014,20 @@ function CareToolsAdmin() {
                   <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
                     {t.tool_id} · {t.tool_type} · weight {t.kfi_weight}
                   </p>
+                  <p className="mt-1 truncate font-mono text-[10px] text-bronze/80">
+                    {tagUrl(t.tool_id)}
+                  </p>
                 </div>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(tagUrl(t.tool_id));
+                    toast.success("Tag URL copied — write this to the NFC chip");
+                  }}
+                  className="rounded-md border border-bronze/40 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.2em] text-bronze hover:bg-bronze/10"
+                >
+                  Copy tag URL
+                </button>
+
                 <span
                   className={`rounded-full px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.2em] ${
                     t.active
