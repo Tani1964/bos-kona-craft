@@ -922,6 +922,11 @@ function OwnershipTimeline({
 
 // ── Care Products (care_tools catalog) ────────────────────────
 
+const tagUrl = (toolId: string) =>
+  `${typeof window !== "undefined" ? window.location.origin : ""}/tap?tool=${encodeURIComponent(toolId)}`;
+
+
+
 function CareToolsAdmin() {
   const qc = useQueryClient();
   const { data: tools, isLoading } = useQuery({
