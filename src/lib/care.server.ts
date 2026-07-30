@@ -79,7 +79,7 @@ export async function recordTap(params: {
     tool_id: params.toolId,
     session_id: sessionId,
     occurred_at: tappedAt,
-    raw_payload: params.rawPayload ?? { source: "owner_session_tap" },
+    raw_payload: (params.rawPayload ?? { source: "owner_session_tap" }) as never,
   });
   if (eventErr) throw new Error(eventErr.message);
 

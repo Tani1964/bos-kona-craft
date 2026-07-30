@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TapRouteImport } from './routes/tap'
 import { Route as SystemRouteImport } from './routes/system'
 import { Route as MeRouteImport } from './routes/me'
 import { Route as LoginRouteImport } from './routes/login'
@@ -26,6 +27,11 @@ import { Route as ApiPublicStorefrontWebhookRouteImport } from './routes/api/pub
 import { Route as ApiPublicNfcTapRouteImport } from './routes/api/public/nfc-tap'
 import { Route as ApiPublicHooksGenerateInsightsRouteImport } from './routes/api/public/hooks/generate-insights'
 
+const TapRoute = TapRouteImport.update({
+  id: '/tap',
+  path: '/tap',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SystemRoute = SystemRouteImport.update({
   id: '/system',
   path: '/system',
@@ -114,6 +120,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/me': typeof MeRoute
   '/system': typeof SystemRoute
+  '/tap': typeof TapRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/api/public/nfc-tap': typeof ApiPublicNfcTapRoute
   '/api/public/storefront-webhook': typeof ApiPublicStorefrontWebhookRoute
@@ -131,6 +138,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/me': typeof MeRoute
   '/system': typeof SystemRoute
+  '/tap': typeof TapRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/api/public/nfc-tap': typeof ApiPublicNfcTapRoute
   '/api/public/storefront-webhook': typeof ApiPublicStorefrontWebhookRoute
@@ -150,6 +158,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/me': typeof MeRoute
   '/system': typeof SystemRoute
+  '/tap': typeof TapRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/api/public/nfc-tap': typeof ApiPublicNfcTapRoute
   '/api/public/storefront-webhook': typeof ApiPublicStorefrontWebhookRoute
@@ -169,6 +178,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/me'
     | '/system'
+    | '/tap'
     | '/admin'
     | '/api/public/nfc-tap'
     | '/api/public/storefront-webhook'
@@ -186,6 +196,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/me'
     | '/system'
+    | '/tap'
     | '/admin'
     | '/api/public/nfc-tap'
     | '/api/public/storefront-webhook'
@@ -204,6 +215,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/me'
     | '/system'
+    | '/tap'
     | '/_authenticated/admin'
     | '/api/public/nfc-tap'
     | '/api/public/storefront-webhook'
@@ -223,6 +235,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   MeRoute: typeof MeRoute
   SystemRoute: typeof SystemRoute
+  TapRoute: typeof TapRoute
   ApiPublicNfcTapRoute: typeof ApiPublicNfcTapRoute
   ApiPublicStorefrontWebhookRoute: typeof ApiPublicStorefrontWebhookRoute
   PSerialDocumentaryRoute: typeof PSerialDocumentaryRoute
@@ -236,6 +249,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/tap': {
+      id: '/tap'
+      path: '/tap'
+      fullPath: '/tap'
+      preLoaderRoute: typeof TapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/system': {
       id: '/system'
       path: '/system'
@@ -370,6 +390,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   MeRoute: MeRoute,
   SystemRoute: SystemRoute,
+  TapRoute: TapRoute,
   ApiPublicNfcTapRoute: ApiPublicNfcTapRoute,
   ApiPublicStorefrontWebhookRoute: ApiPublicStorefrontWebhookRoute,
   PSerialDocumentaryRoute: PSerialDocumentaryRoute,
