@@ -3,6 +3,7 @@ import { useSession } from "@tanstack/react-start/server";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { computeEffectiveStress, getWeather } from "@/lib/weather.server";
+import { recordTap } from "@/lib/care.server";
 import {
   computeLongevity,
   inferMaterial,
@@ -406,4 +407,63 @@ export const getLongevity = createServerFn({ method: "GET" })
       windowDays,
       transportMix,
     };
+  });
+
+// ── Care tap (NFC tool → owner session) ───────────────────────
+// Physical care tools carry a static NFC URL: /tap?tool=<tool_id>
+// Authorization comes from the owner's phone-matched session, so the tag
+// itself carries no secret and can be mass-encoded identically per tool.
+
+export const recordCareTap = createServerFn({ method: "POST" })
+  .inputValidator((d: { tool_id: string; serial?: string }) =>
+    z
+      .object({
+        tool_id: z.string().min(1).max(64).regex(/^[a-z0-9_]+$/),
+        serial: z.string().min(1).max(64).optional(),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data }) => {
+    const session = await useSession<OwnerSession>(sessionConfig());
+    const phone = session.data.phone;
+    if (!phone) throw new Error("Not signed in");
+
+    let assetId: string | null = null;
+    let serial: string | null = null;
+
+    if (data.serial) {
+      const { data: asset } = await supabaseAdmin
+        .from("assets")
+        .select("id, serial")
+        .eq("serial", data.serial.toUpperCase())
+        .maybeSingle();
+      if (!asset) throw new Error("Serial not found");
+      assetId = asset.id;
+      serial = asset.serial;
+    } else {
+      const { data: rows } = await supabaseAdmin
+        .from("ownership_records")
+        .select("asset_id, owner_phone, acquired_at, assets(serial)")
+        .order("acquired_at", { ascending: false });
+      const seen = new Set<string>();
+      const owned: any[] = [];
+      for (const r of rows ?? []) {
+        if (seen.has(r.asset_id)) continue;
+        seen.add(r.asset_id);
+        if (r.owner_phone === phone) owned.push(r);
+      }
+      if (owned.length !== 1) {
+        throw new Error("Choose which piece this care applies to");
+      }
+      assetId = owned[0].asset_id;
+      serial = owned[0].assets?.serial ?? null;
+    }
+
+    await requireOwnership(assetId!);
+    const result = await recordTap({
+      assetId: assetId!,
+      ownerPhone: phone,
+      toolId: data.tool_id,
+    });
+    return { ...result, serial: serial!, asset_id: assetId! };
   });
