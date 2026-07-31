@@ -5,6 +5,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { claimBySerial } from "@/lib/owner.functions";
+import { markPassportClaimed } from "@/pwa/installState";
 
 const searchSchema = z.object({ serial: z.string().optional() });
 
@@ -27,6 +28,7 @@ function ClaimPage() {
     setBusy(true);
     try {
       const res = await claim({ data: { serial: serial.trim(), phone: phone.trim() } });
+      markPassportClaimed();
       toast.success("Passport unlocked");
       void res;
       navigate({ to: "/" });

@@ -1,13 +1,20 @@
 {
+  "id": "/",
   "name": "Bos' Kọ́nà — Craft Passport",
   "short_name": "Bos' Kọ́nà",
   "description": "Afro-futurist craft passport for bespoke pieces.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui", "browser"],
+  "launch_handler": {
+    "client_mode": ["navigate-existing", "auto"]
+  },
+  "handle_links": "preferred",
   "orientation": "portrait",
   "background_color": "#0c0a09",
   "theme_color": "#0c0a09",
+  "categories": ["lifestyle", "utilities"],
   "icons": [
     {
       "src": "/icon-192.png",

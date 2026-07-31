@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { getOwnerContext, listMyAssets } from "@/lib/owner.functions";
 import { DEFAULT_SERIAL } from "@/lib/passport/queries";
+import { markPassportClaimed } from "@/pwa/installState";
 
 export const Route = createFileRoute("/")({
   component: EntryResolver,
@@ -38,6 +39,7 @@ function EntryResolver() {
           navigate({ to: "/p/$serial", params: { serial: DEFAULT_SERIAL } });
           return;
         }
+        markPassportClaimed();
         const { assets } = await listMyAssets();
         if (cancelled) return;
         const serial = (assets?.[0] as any)?.assets?.serial;
