@@ -26,6 +26,7 @@ import { OwnerChip } from "@/components/passport/OwnerChip";
 import * as ownerFns from "@/lib/owner.functions";
 import { getLiveSignals, getKfi } from "@/lib/passport.functions";
 import { resolveFeed, type ThumbnailStyle } from "@/lib/passport/ecosystem";
+import { getWatchedFilms } from "@/lib/passport/watched";
 import {
   deriveStage,
   deriveRecommendation,
@@ -138,7 +139,17 @@ function PassportPage() {
   const stage = deriveStage(score);
   const lifespan = estimateLifespanYears(telemetry);
   const recommendation = deriveRecommendation(telemetry);
-  const feed = resolveFeed(telemetry, serialParam);
+  const [watchedFilms, setWatchedFilms] = useState<string[]>([]);
+  useEffect(() => {
+    setWatchedFilms(getWatchedFilms());
+  }, []);
+  const feed = resolveFeed(telemetry, serialParam, {
+    films: {
+      origin: (passportRaw as any)?.film_origin_url ?? null,
+      transform: (passportRaw as any)?.film_transform_url ?? null,
+    },
+    watchedFilms,
+  });
 
 
   const modelName = passport?.model_name ?? "—";
@@ -300,7 +311,7 @@ function PassportPage() {
                 to={m.to}
                 title={m.title}
                 subtitle={m.resolvedSubtitle}
-                locked={m.locked}
+                search={m.search}
                 video={m.video}
                 thumbnail={m.thumbnail ? <Thumb style={m.thumbnail} /> : undefined}
                 icon={<Icon className="h-5 w-5 text-bronze" />}
