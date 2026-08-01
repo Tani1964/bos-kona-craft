@@ -11,7 +11,6 @@ import {
   saveMakers,
   saveAtelier,
   saveDocumentary,
-  getDocumentaryUploadUrl,
   claimAdminIfNone,
   isCurrentUserAdmin,
   adminListOwnership,
@@ -32,7 +31,6 @@ import {
   ExternalLink,
   Save,
   Trash2,
-  Upload,
   Film,
   ShoppingBag,
   ArrowRightLeft,
@@ -486,56 +484,45 @@ function DocumentaryTab({ asset }: { asset: any }) {
     format: d.format ?? "",
     synopsis: d.synopsis ?? "",
     video_path: d.video_path ?? null,
+    external_url: d.external_url ?? "",
+    transform_external_url: d.transform_external_url ?? "",
     chapters: d.chapters ?? [],
     credits: d.credits ?? [],
   });
-  const [uploading, setUploading] = useState(false);
   const m = useSave((data: any) => saveDocumentary({ data }), ["admin", "asset", asset.id]);
-
-  async function uploadVideo(file: File) {
-    if (file.size > 500 * 1024 * 1024) {
-      toast.error("Video must be under 500 MB");
-      return;
-    }
-    setUploading(true);
-    try {
-      const { path, token } = await getDocumentaryUploadUrl({
-        data: { asset_id: asset.id, filename: file.name.replace(/[^a-zA-Z0-9._-]/g, "_") },
-      });
-      const { error } = await supabase.storage.from("documentary").uploadToSignedUrl(path, token, file);
-      if (error) throw error;
-      setV((s) => ({ ...s, video_path: path }));
-      toast.success("Video uploaded — remember to Save");
-    } catch (e: any) {
-      toast.error(e.message ?? "Upload failed");
-    } finally {
-      setUploading(false);
-    }
-  }
 
   return (
     <div className="max-w-3xl space-y-5">
-      {/* Video uploader */}
+      {/* Film links — videos are hosted externally, never stored here */}
       <div className="rounded-xl border border-bronze/30 bg-gradient-to-br from-bronze/10 to-transparent p-4">
         <div className="flex items-center gap-2">
           <Film className="h-4 w-4 text-bronze" />
-          <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-bronze">Documentary video</span>
+          <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-bronze">Film links</span>
         </div>
-        {v.video_path ? (
-          <p className="mt-2 break-all font-mono text-[11px] text-muted-foreground">{v.video_path}</p>
-        ) : (
-          <p className="mt-2 font-mono text-[11px] text-muted-foreground">No video uploaded yet.</p>
-        )}
-        <label className="mt-3 inline-flex cursor-pointer items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs font-mono uppercase tracking-[0.2em] hover:bg-white/10">
-          <Upload className="h-3.5 w-3.5" /> {uploading ? "Uploading…" : "Upload video (mp4/mov ≤500MB)"}
-          <input
-            type="file"
-            accept="video/*"
-            className="hidden"
-            disabled={uploading}
-            onChange={(e) => e.target.files?.[0] && uploadVideo(e.target.files[0])}
-          />
-        </label>
+        <p className="mt-2 font-mono text-[11px] leading-relaxed text-muted-foreground">
+          Paste a hosted video link (Vimeo, YouTube, private CDN). Leave a field empty and that
+          film simply doesn't appear in the passport — no locked cards, no stored files.
+        </p>
+        <div className="mt-3 space-y-3">
+          {field(
+            "Origin film URL",
+            <input
+              className={inputCls}
+              placeholder="https://vimeo.com/…"
+              value={v.external_url}
+              onChange={(e) => setV({ ...v, external_url: e.target.value })}
+            />,
+          )}
+          {field(
+            "Transformation film URL",
+            <input
+              className={inputCls}
+              placeholder="https://vimeo.com/…"
+              value={v.transform_external_url}
+              onChange={(e) => setV({ ...v, transform_external_url: e.target.value })}
+            />,
+          )}
+        </div>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">

@@ -29,7 +29,7 @@ export const getPassport = createServerFn({ method: "GET" })
          provenance_stages (id, position, icon_key, label, title, body, location, date_text),
          makers (id, position, name, role, years),
          atelier (name, location, lat, lng),
-         documentary (video_path, poster_path, title, runtime, year, format, synopsis, chapters, credits),
+         documentary (video_path, poster_path, title, runtime, year, format, synopsis, chapters, credits, external_url, transform_external_url),
          module_overrides (module_id, title_override, subtitle_override, thumbnail_override),
          ownership_records (id, store_order_id, owner_ref, event_type, acquired_at, notes)`,
       )
@@ -44,16 +44,16 @@ export const getPassport = createServerFn({ method: "GET" })
       (a: any, b: any) =>
         new Date(a.acquired_at).getTime() - new Date(b.acquired_at).getTime(),
     );
-    // signed video url if private
-    let videoUrl: string | null = null;
-    const docVideo = (asset.documentary as any)?.video_path as string | undefined;
-    if (docVideo) {
-      const { data: signed } = await supabaseAdmin.storage
-        .from("documentary")
-        .createSignedUrl(docVideo, 60 * 60);
-      videoUrl = signed?.signedUrl ?? null;
-    }
-    return { ...asset, video_url: videoUrl };
+    // Films are hosted externally — the passport only stores the link, never the file.
+    const doc = (asset.documentary as any) ?? {};
+    const filmOrigin = (doc.external_url as string | null) ?? null;
+    const filmTransform = (doc.transform_external_url as string | null) ?? null;
+    return {
+      ...asset,
+      film_origin_url: filmOrigin,
+      film_transform_url: filmTransform,
+      video_url: filmOrigin,
+    };
   });
 
 // Live behavior+environment signals derived from wear_events + care_sessions.
@@ -339,6 +339,8 @@ export const saveDocumentary = createServerFn({ method: "POST" })
         format: z.string().min(1).max(60),
         synopsis: z.string().max(2000),
         video_path: z.string().max(300).nullable().optional(),
+        external_url: z.string().url().max(600).nullable().optional().or(z.literal("")),
+        transform_external_url: z.string().url().max(600).nullable().optional().or(z.literal("")),
         chapters: z.array(ChapterSchema).max(40),
         credits: z.array(CreditSchema).max(40),
       })
