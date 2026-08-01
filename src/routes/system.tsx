@@ -32,7 +32,7 @@ function SystemPage() {
   const stage = deriveStage(kfi.score);
   const lifespan = estimateLifespanYears(t);
   const rec = deriveRecommendation(t);
-  const feed = resolveFeed(t);
+  const feed = resolveFeed(t, undefined, { includeLocked: true });
 
   return (
     <div className="min-h-screen bg-stone-950 text-foreground grain">
