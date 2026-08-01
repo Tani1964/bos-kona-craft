@@ -40,9 +40,15 @@ export interface EcosystemModule {
   thumbnail?: ThumbnailStyle;
   video?: boolean;
   unlock: UnlockRule;
-  /** When locked, what to display instead of the dynamic subtitle */
+  /**
+   * Film modules are ephemeral: they only exist while an external link is
+   * present, and they retire once the owner has watched them.
+   */
+  film?: "origin" | "transform";
+  /** Legacy — retained for the /system inspector; the feed never shows locks. */
   lockedHint: string;
 }
+
 
 export const ECOSYSTEM: EcosystemModule[] = [
   {
