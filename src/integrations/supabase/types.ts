@@ -284,11 +284,13 @@ export type Database = {
           asset_id: string
           chapters: Json
           credits: Json
+          external_url: string | null
           format: string
           poster_path: string | null
           runtime: string
           synopsis: string
           title: string
+          transform_external_url: string | null
           video_path: string | null
           year: string
         }
@@ -296,11 +298,13 @@ export type Database = {
           asset_id: string
           chapters?: Json
           credits?: Json
+          external_url?: string | null
           format?: string
           poster_path?: string | null
           runtime?: string
           synopsis?: string
           title?: string
+          transform_external_url?: string | null
           video_path?: string | null
           year?: string
         }
@@ -308,11 +312,13 @@ export type Database = {
           asset_id?: string
           chapters?: Json
           credits?: Json
+          external_url?: string | null
           format?: string
           poster_path?: string | null
           runtime?: string
           synopsis?: string
           title?: string
+          transform_external_url?: string | null
           video_path?: string | null
           year?: string
         }
