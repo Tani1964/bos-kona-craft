@@ -100,23 +100,26 @@ export const ECOSYSTEM: EcosystemModule[] = [
   {
     id: "doc-origin",
     ordinal: 8,
-    title: "Documentary: Origin",
-    subtitle: () => "12 min · Bespoke Atelier",
+    title: "Film: Origin",
+    subtitle: () => "Now screening · Bespoke Atelier",
     to: "/documentary",
     icon: Film,
     thumbnail: { kind: "radial", spec: "circle_at_30%_30%,oklch(0.45_0.1_50),oklch(0.12_0.01_50)" },
     video: true,
+    film: "origin",
     unlock: UnlockRules.always(),
     lockedHint: "",
   },
   {
     id: "doc-transform",
     ordinal: 9,
-    title: "Documentary: Transformation",
-    subtitle: () => "Premiering on your wear journey",
+    title: "Film: Transformation",
+    subtitle: () => "Now screening · Your wear journey",
+    to: "/documentary?film=transform",
     icon: Film,
     thumbnail: { kind: "radial", spec: "circle_at_70%_60%,oklch(0.32_0.08_30),oklch(0.1_0.01_30))" },
     video: true,
+    film: "transform",
     unlock: UnlockRules.afterWears(50),
     lockedHint: "Unlocks at 50 Wears",
   },
@@ -145,12 +148,28 @@ export interface ResolvedModule extends EcosystemModule {
   resolvedSubtitle: string;
 }
 
-/** Single entry-point the UI calls each render. */
+export interface FeedOptions {
+  /** External film links currently available (absent/null = film doesn't exist) */
+  films?: { origin?: string | null; transform?: string | null };
+  /** Film ids already watched on this device — they retire from the feed */
+  watchedFilms?: string[];
+  /** Set true only for the /system inspector, which visualises lock rules */
+  includeLocked?: boolean;
+}
+
+/**
+ * Single entry-point the UI calls each render.
+ * Modules that aren't unlocked are omitted entirely — the passport never shows
+ * padlocks or teasers. Film modules exist only while a link is live and unwatched.
+ */
 export function resolveFeed(
   telemetry: AssetTelemetry,
   serial?: string,
+  opts: FeedOptions = {},
 ): ResolvedModule[] {
   const ctx = buildContext(telemetry);
+  const watched = new Set(opts.watchedFilms ?? []);
+
   return ECOSYSTEM.map((m) => {
     const locked = !m.unlock(ctx);
     const to =
@@ -161,5 +180,15 @@ export function resolveFeed(
       locked,
       resolvedSubtitle: locked ? m.lockedHint : m.subtitle(ctx),
     };
+  }).filter((m) => {
+    if (opts.includeLocked) return true;
+    if (m.locked) return false;
+    if (m.film) {
+      const link = opts.films?.[m.film];
+      if (!link) return false;
+      if (serial && watched.has(`${serial}:${m.film}`)) return false;
+    }
+    return true;
   });
 }
+
