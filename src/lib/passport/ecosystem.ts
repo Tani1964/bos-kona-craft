@@ -39,6 +39,8 @@ export interface EcosystemModule {
   icon: LucideIcon;
   thumbnail?: ThumbnailStyle;
   video?: boolean;
+  /** Optional search params appended when navigating */
+  search?: Record<string, string>;
   unlock: UnlockRule;
   /**
    * Film modules are ephemeral: they only exist while an external link is
@@ -115,7 +117,8 @@ export const ECOSYSTEM: EcosystemModule[] = [
     ordinal: 9,
     title: "Film: Transformation",
     subtitle: () => "Now screening · Your wear journey",
-    to: "/documentary?film=transform",
+    to: "/documentary",
+    search: { film: "transform" },
     icon: Film,
     thumbnail: { kind: "radial", spec: "circle_at_70%_60%,oklch(0.32_0.08_30),oklch(0.1_0.01_30))" },
     video: true,
