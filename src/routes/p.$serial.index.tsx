@@ -2,7 +2,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useSuspenseQuery, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ShoppingBag,
   ShieldCheck,
@@ -145,8 +145,8 @@ function PassportPage() {
   }, []);
   const feed = resolveFeed(telemetry, serialParam, {
     films: {
-      origin: (passportRaw as any)?.film_origin_url ?? null,
-      transform: (passportRaw as any)?.film_transform_url ?? null,
+      origin: (passport as any)?.film_origin_url ?? null,
+      transform: (passport as any)?.film_transform_url ?? null,
     },
     watchedFilms,
   });
