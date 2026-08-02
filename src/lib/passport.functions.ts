@@ -183,11 +183,12 @@ export const adminListAssets = createServerFn({ method: "GET" })
 
 export const createAsset = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { serial: string; model_name: string }) =>
+  .inputValidator((d: { serial: string; model_name: string; store_product_id?: string }) =>
     z
       .object({
         serial: z.string().min(1).max(64).regex(/^[A-Z0-9-]+$/i),
         model_name: z.string().min(1).max(120),
+        store_product_id: z.string().max(128).optional(),
       })
       .parse(d),
   )
@@ -195,7 +196,11 @@ export const createAsset = createServerFn({ method: "POST" })
     await assertAdmin(context);
     const { data: a, error } = await supabaseAdmin
       .from("assets")
-      .insert({ serial: data.serial.toUpperCase(), model_name: data.model_name })
+      .insert({
+        serial: data.serial.toUpperCase(),
+        model_name: data.model_name,
+        store_product_id: data.store_product_id || null,
+      })
       .select("id")
       .single();
     if (error) throw new Error(error.message);
