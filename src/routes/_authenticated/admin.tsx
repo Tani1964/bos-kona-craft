@@ -383,15 +383,31 @@ function IdentityTab({ asset }: { asset: any }) {
     model_name: asset.model_name,
     status: asset.status,
     lot: asset.lot ?? "",
+    store_product_id: asset.store_product_id ?? "",
   });
-  const dirty = JSON.stringify(v) !== JSON.stringify({ model_name: asset.model_name, status: asset.status, lot: asset.lot ?? "" });
+  const baseline = { model_name: asset.model_name, status: asset.status, lot: asset.lot ?? "", store_product_id: asset.store_product_id ?? "" };
+  const dirty = JSON.stringify(v) !== JSON.stringify(baseline);
   const m = useSave((d: any) => saveIdentity({ data: d }), ["admin", "asset", asset.id]);
   return (
     <div className="grid max-w-2xl gap-4">
       {field("Model name", <input className={inputCls} value={v.model_name} onChange={(e) => setV({ ...v, model_name: e.target.value })} />)}
       {field("Status", <input className={inputCls} value={v.status} onChange={(e) => setV({ ...v, status: e.target.value })} placeholder="New, Breaking In, Seasoned…" />)}
       {field("Lot", <input className={inputCls} value={v.lot} onChange={(e) => setV({ ...v, lot: e.target.value })} placeholder="014/200" />)}
-      <SaveBar busy={m.isPending} dirty={dirty} onSave={() => m.mutate({ id: asset.id, ...v, lot: v.lot || null })} />
+      {field(
+        "Store product ID",
+        <>
+          <input
+            className={inputCls + " font-mono"}
+            value={v.store_product_id}
+            onChange={(e) => setV({ ...v, store_product_id: e.target.value })}
+            placeholder="Auto-filled by store webhook"
+          />
+          <p className="mt-1 font-mono text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
+            Normally populated automatically on purchase. Only edit for manual/fallback passports.
+          </p>
+        </>,
+      )}
+      <SaveBar busy={m.isPending} dirty={dirty} onSave={() => m.mutate({ id: asset.id, ...v, lot: v.lot || null, store_product_id: v.store_product_id || null })} />
     </div>
   );
 }
