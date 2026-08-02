@@ -243,6 +243,7 @@ export const saveIdentity = createServerFn({ method: "POST" })
         model_name: z.string().min(1).max(120),
         status: z.string().min(1).max(40),
         lot: z.string().max(40).nullable().optional(),
+        store_product_id: z.string().max(128).nullable().optional(),
       })
       .parse(d),
   )
@@ -250,7 +251,12 @@ export const saveIdentity = createServerFn({ method: "POST" })
     await assertAdmin(context);
     const { error } = await supabaseAdmin
       .from("assets")
-      .update({ model_name: data.model_name, status: data.status, lot: data.lot ?? null })
+      .update({
+        model_name: data.model_name,
+        status: data.status,
+        lot: data.lot ?? null,
+        store_product_id: data.store_product_id ?? null,
+      })
       .eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
