@@ -8,7 +8,7 @@ export const Route = createFileRoute("/_authenticated")({
     if (import.meta.env.SSR) return;
     const { data } = await supabase.auth.getUser();
     if (!data.user) {
-      throw redirect({ to: "/login", search: { redirect: location.href } as never });
+      throw redirect({ to: "/atelier", search: { redirect: location.href } as never });
     }
   },
   component: () => <Outlet />,
