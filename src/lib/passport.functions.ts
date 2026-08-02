@@ -183,11 +183,12 @@ export const adminListAssets = createServerFn({ method: "GET" })
 
 export const createAsset = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { serial: string; model_name: string }) =>
+  .inputValidator((d: { serial: string; model_name: string; store_product_id?: string }) =>
     z
       .object({
         serial: z.string().min(1).max(64).regex(/^[A-Z0-9-]+$/i),
         model_name: z.string().min(1).max(120),
+        store_product_id: z.string().max(128).optional(),
       })
       .parse(d),
   )
@@ -195,7 +196,11 @@ export const createAsset = createServerFn({ method: "POST" })
     await assertAdmin(context);
     const { data: a, error } = await supabaseAdmin
       .from("assets")
-      .insert({ serial: data.serial.toUpperCase(), model_name: data.model_name })
+      .insert({
+        serial: data.serial.toUpperCase(),
+        model_name: data.model_name,
+        store_product_id: data.store_product_id || null,
+      })
       .select("id")
       .single();
     if (error) throw new Error(error.message);
@@ -212,7 +217,7 @@ export const getAssetForEdit = createServerFn({ method: "GET" })
     const { data: asset, error } = await supabaseAdmin
       .from("assets")
       .select(
-        `id, serial, model_name, status, lot, hero_style,
+        `id, serial, model_name, status, lot, hero_style, store_product_id,
          asset_telemetry (wears, nfc_scans, care_entries, repairs, age_days),
          provenance_stages (id, position, icon_key, label, title, body, location, date_text),
          makers (id, position, name, role, years),
@@ -238,6 +243,7 @@ export const saveIdentity = createServerFn({ method: "POST" })
         model_name: z.string().min(1).max(120),
         status: z.string().min(1).max(40),
         lot: z.string().max(40).nullable().optional(),
+        store_product_id: z.string().max(128).nullable().optional(),
       })
       .parse(d),
   )
@@ -245,7 +251,12 @@ export const saveIdentity = createServerFn({ method: "POST" })
     await assertAdmin(context);
     const { error } = await supabaseAdmin
       .from("assets")
-      .update({ model_name: data.model_name, status: data.status, lot: data.lot ?? null })
+      .update({
+        model_name: data.model_name,
+        status: data.status,
+        lot: data.lot ?? null,
+        store_product_id: data.store_product_id ?? null,
+      })
       .eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };

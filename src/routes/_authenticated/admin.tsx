@@ -85,9 +85,10 @@ function AdminPage() {
   const [newOpen, setNewOpen] = useState(false);
 
   const create = useMutation({
-    mutationFn: (input: { serial: string; model_name: string }) => createAsset({ data: input }),
+    mutationFn: (input: { serial: string; model_name: string; store_product_id?: string }) =>
+      createAsset({ data: input }),
     onSuccess: (a) => {
-      toast.success("Asset created");
+      toast.success("Fallback passport created");
       qc.invalidateQueries({ queryKey: ["admin", "assets"] });
       setNewOpen(false);
       setSelectedId(a.id);
@@ -216,20 +217,32 @@ function NewAssetForm({
   onCancel,
   busy,
 }: {
-  onCreate: (v: { serial: string; model_name: string }) => void;
+  onCreate: (v: { serial: string; model_name: string; store_product_id?: string }) => void;
   onCancel: () => void;
   busy: boolean;
 }) {
   const [serial, setSerial] = useState("");
   const [name, setName] = useState("");
+  const [storeProductId, setStoreProductId] = useState("");
   return (
     <form
       onSubmit={(e) => {
         e.preventDefault();
-        onCreate({ serial: serial.trim(), model_name: name.trim() });
+        onCreate({
+          serial: serial.trim(),
+          model_name: name.trim(),
+          store_product_id: storeProductId.trim() || undefined,
+        });
       }}
-      className="mb-3 space-y-2 rounded-lg border border-bronze/30 bg-bronze/5 p-3"
+      className="mb-3 space-y-3 rounded-lg border border-bronze/30 bg-bronze/5 p-3"
     >
+      <div>
+        <p className="font-serif text-base leading-tight">Manual / fallback creation</p>
+        <p className="mt-1 font-mono text-[10px] leading-relaxed text-muted-foreground">
+          Most passports are created automatically when a purchase happens in the Bos' Kọ́nà store.
+          Use this form only for pre-launch inventory, gifts/transfers, or corrections.
+        </p>
+      </div>
       <input
         required
         placeholder="Model name"
@@ -244,9 +257,15 @@ function NewAssetForm({
         onChange={(e) => setSerial(e.target.value)}
         className="w-full rounded-md border border-white/10 bg-stone-900 px-2 py-2 text-sm font-mono outline-none"
       />
+      <input
+        placeholder="Store product ID (optional, links to catalog)"
+        value={storeProductId}
+        onChange={(e) => setStoreProductId(e.target.value)}
+        className="w-full rounded-md border border-white/10 bg-stone-900 px-2 py-2 text-sm font-mono outline-none"
+      />
       <div className="flex gap-2">
         <button disabled={busy} className="flex-1 rounded-md bg-bronze py-2 text-xs font-bold text-stone-950">
-          {busy ? "…" : "Create"}
+          {busy ? "…" : "Create fallback passport"}
         </button>
         <button type="button" onClick={onCancel} className="rounded-md border border-white/10 px-3 py-2 text-xs">
           Cancel
@@ -364,15 +383,31 @@ function IdentityTab({ asset }: { asset: any }) {
     model_name: asset.model_name,
     status: asset.status,
     lot: asset.lot ?? "",
+    store_product_id: asset.store_product_id ?? "",
   });
-  const dirty = JSON.stringify(v) !== JSON.stringify({ model_name: asset.model_name, status: asset.status, lot: asset.lot ?? "" });
+  const baseline = { model_name: asset.model_name, status: asset.status, lot: asset.lot ?? "", store_product_id: asset.store_product_id ?? "" };
+  const dirty = JSON.stringify(v) !== JSON.stringify(baseline);
   const m = useSave((d: any) => saveIdentity({ data: d }), ["admin", "asset", asset.id]);
   return (
     <div className="grid max-w-2xl gap-4">
       {field("Model name", <input className={inputCls} value={v.model_name} onChange={(e) => setV({ ...v, model_name: e.target.value })} />)}
       {field("Status", <input className={inputCls} value={v.status} onChange={(e) => setV({ ...v, status: e.target.value })} placeholder="New, Breaking In, Seasoned…" />)}
       {field("Lot", <input className={inputCls} value={v.lot} onChange={(e) => setV({ ...v, lot: e.target.value })} placeholder="014/200" />)}
-      <SaveBar busy={m.isPending} dirty={dirty} onSave={() => m.mutate({ id: asset.id, ...v, lot: v.lot || null })} />
+      {field(
+        "Store product ID",
+        <>
+          <input
+            className={inputCls + " font-mono"}
+            value={v.store_product_id}
+            onChange={(e) => setV({ ...v, store_product_id: e.target.value })}
+            placeholder="Auto-filled by store webhook"
+          />
+          <p className="mt-1 font-mono text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
+            Normally populated automatically on purchase. Only edit for manual/fallback passports.
+          </p>
+        </>,
+      )}
+      <SaveBar busy={m.isPending} dirty={dirty} onSave={() => m.mutate({ id: asset.id, ...v, lot: v.lot || null, store_product_id: v.store_product_id || null })} />
     </div>
   );
 }
