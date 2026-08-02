@@ -85,9 +85,10 @@ function AdminPage() {
   const [newOpen, setNewOpen] = useState(false);
 
   const create = useMutation({
-    mutationFn: (input: { serial: string; model_name: string }) => createAsset({ data: input }),
+    mutationFn: (input: { serial: string; model_name: string; store_product_id?: string }) =>
+      createAsset({ data: input }),
     onSuccess: (a) => {
-      toast.success("Asset created");
+      toast.success("Fallback passport created");
       qc.invalidateQueries({ queryKey: ["admin", "assets"] });
       setNewOpen(false);
       setSelectedId(a.id);
