@@ -217,7 +217,7 @@ export const getAssetForEdit = createServerFn({ method: "GET" })
     const { data: asset, error } = await supabaseAdmin
       .from("assets")
       .select(
-        `id, serial, model_name, status, lot, hero_style,
+        `id, serial, model_name, status, lot, hero_style, store_product_id,
          asset_telemetry (wears, nfc_scans, care_entries, repairs, age_days),
          provenance_stages (id, position, icon_key, label, title, body, location, date_text),
          makers (id, position, name, role, years),
