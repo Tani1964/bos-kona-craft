@@ -216,20 +216,32 @@ function NewAssetForm({
   onCancel,
   busy,
 }: {
-  onCreate: (v: { serial: string; model_name: string }) => void;
+  onCreate: (v: { serial: string; model_name: string; store_product_id?: string }) => void;
   onCancel: () => void;
   busy: boolean;
 }) {
   const [serial, setSerial] = useState("");
   const [name, setName] = useState("");
+  const [storeProductId, setStoreProductId] = useState("");
   return (
     <form
       onSubmit={(e) => {
         e.preventDefault();
-        onCreate({ serial: serial.trim(), model_name: name.trim() });
+        onCreate({
+          serial: serial.trim(),
+          model_name: name.trim(),
+          store_product_id: storeProductId.trim() || undefined,
+        });
       }}
-      className="mb-3 space-y-2 rounded-lg border border-bronze/30 bg-bronze/5 p-3"
+      className="mb-3 space-y-3 rounded-lg border border-bronze/30 bg-bronze/5 p-3"
     >
+      <div>
+        <p className="font-serif text-base leading-tight">Manual / fallback creation</p>
+        <p className="mt-1 font-mono text-[10px] leading-relaxed text-muted-foreground">
+          Most passports are created automatically when a purchase happens in the Bos' Kọ́nà store.
+          Use this form only for pre-launch inventory, gifts/transfers, or corrections.
+        </p>
+      </div>
       <input
         required
         placeholder="Model name"
@@ -244,9 +256,15 @@ function NewAssetForm({
         onChange={(e) => setSerial(e.target.value)}
         className="w-full rounded-md border border-white/10 bg-stone-900 px-2 py-2 text-sm font-mono outline-none"
       />
+      <input
+        placeholder="Store product ID (optional, links to catalog)"
+        value={storeProductId}
+        onChange={(e) => setStoreProductId(e.target.value)}
+        className="w-full rounded-md border border-white/10 bg-stone-900 px-2 py-2 text-sm font-mono outline-none"
+      />
       <div className="flex gap-2">
         <button disabled={busy} className="flex-1 rounded-md bg-bronze py-2 text-xs font-bold text-stone-950">
-          {busy ? "…" : "Create"}
+          {busy ? "…" : "Create fallback passport"}
         </button>
         <button type="button" onClick={onCancel} className="rounded-md border border-white/10 px-3 py-2 text-xs">
           Cancel
