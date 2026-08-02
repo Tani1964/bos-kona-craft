@@ -60,7 +60,7 @@ export const Route = createFileRoute("/_authenticated/admin")({
   beforeLoad: async () => {
     if (import.meta.env.SSR) return;
     const { data: authData, error: authError } = await supabase.auth.getUser();
-    if (authError || !authData.user) throw redirect({ to: "/login" });
+    if (authError || !authData.user) throw redirect({ to: "/atelier" });
     await claimAdminIfNone().catch(() => {});
     let isAdmin = false;
     for (let attempt = 0; attempt < 3; attempt += 1) {
@@ -71,7 +71,7 @@ export const Route = createFileRoute("/_authenticated/admin")({
       }
       await new Promise((resolve) => window.setTimeout(resolve, 250));
     }
-    if (!isAdmin) throw redirect({ to: "/login" });
+    if (!isAdmin) throw redirect({ to: "/atelier" });
   },
   component: AdminPage,
   head: () => ({ meta: [{ title: "Admin — Bos' Kọ́nà" }] }),
@@ -105,7 +105,7 @@ function AdminPage() {
         <button
           onClick={async () => {
             await supabase.auth.signOut();
-            navigate({ to: "/login" });
+            navigate({ to: "/atelier" });
           }}
           className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5"
           title="Sign out"
