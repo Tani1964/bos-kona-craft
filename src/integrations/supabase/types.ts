@@ -402,6 +402,74 @@ export type Database = {
           },
         ]
       }
+      notification_log: {
+        Row: {
+          asset_id: string | null
+          created_at: string
+          detail: string | null
+          id: string
+          kind: string
+          owner_phone: string
+          provider: string
+          status: string
+          wear_event_id: string | null
+        }
+        Insert: {
+          asset_id?: string | null
+          created_at?: string
+          detail?: string | null
+          id?: string
+          kind: string
+          owner_phone: string
+          provider?: string
+          status?: string
+          wear_event_id?: string | null
+        }
+        Update: {
+          asset_id?: string | null
+          created_at?: string
+          detail?: string | null
+          id?: string
+          kind?: string
+          owner_phone?: string
+          provider?: string
+          status?: string
+          wear_event_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_log_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      owner_settings: {
+        Row: {
+          created_at: string
+          notifications_enabled: boolean
+          owner_phone: string
+          updated_at: string
+          wear_intelligence: boolean
+        }
+        Insert: {
+          created_at?: string
+          notifications_enabled?: boolean
+          owner_phone: string
+          updated_at?: string
+          wear_intelligence?: boolean
+        }
+        Update: {
+          created_at?: string
+          notifications_enabled?: boolean
+          owner_phone?: string
+          updated_at?: string
+          wear_intelligence?: boolean
+        }
+        Relationships: []
+      }
       ownership_records: {
         Row: {
           acquired_at: string
@@ -490,6 +558,42 @@ export type Database = {
           },
         ]
       }
+      push_devices: {
+        Row: {
+          created_at: string
+          device_label: string | null
+          id: string
+          last_seen_at: string
+          owner_phone: string
+          provider: string
+          revoked_at: string | null
+          token: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          device_label?: string | null
+          id?: string
+          last_seen_at?: string
+          owner_phone: string
+          provider?: string
+          revoked_at?: string | null
+          token: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          device_label?: string | null
+          id?: string
+          last_seen_at?: string
+          owner_phone?: string
+          provider?: string
+          revoked_at?: string | null
+          token?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -514,43 +618,64 @@ export type Database = {
       wear_events: {
         Row: {
           asset_id: string
+          confirmed_at: string | null
           created_at: string
+          detected_via: string
           effective_stress: number | null
           ended_at: string | null
+          expires_at: string | null
           id: string
           location_lat: number | null
           location_lng: number | null
+          notification_provider: string | null
+          notification_status: string
+          outing_key: string | null
           owner_phone: string
           rain_probability: number | null
           started_at: string
+          status: string
           transport_mode: string
           weather_snapshot: Json | null
         }
         Insert: {
           asset_id: string
+          confirmed_at?: string | null
           created_at?: string
+          detected_via?: string
           effective_stress?: number | null
           ended_at?: string | null
+          expires_at?: string | null
           id?: string
           location_lat?: number | null
           location_lng?: number | null
+          notification_provider?: string | null
+          notification_status?: string
+          outing_key?: string | null
           owner_phone: string
           rain_probability?: number | null
           started_at?: string
+          status?: string
           transport_mode?: string
           weather_snapshot?: Json | null
         }
         Update: {
           asset_id?: string
+          confirmed_at?: string | null
           created_at?: string
+          detected_via?: string
           effective_stress?: number | null
           ended_at?: string | null
+          expires_at?: string | null
           id?: string
           location_lat?: number | null
           location_lng?: number | null
+          notification_provider?: string | null
+          notification_status?: string
+          outing_key?: string | null
           owner_phone?: string
           rain_probability?: number | null
           started_at?: string
+          status?: string
           transport_mode?: string
           weather_snapshot?: Json | null
         }
