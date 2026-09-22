@@ -449,6 +449,10 @@ export type Database = {
       owner_settings: {
         Row: {
           created_at: string
+          home_lat: number | null
+          home_lng: number | null
+          home_radius_m: number
+          last_prompt_at: string | null
           notifications_enabled: boolean
           owner_phone: string
           updated_at: string
@@ -456,6 +460,10 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          home_lat?: number | null
+          home_lng?: number | null
+          home_radius_m?: number
+          last_prompt_at?: string | null
           notifications_enabled?: boolean
           owner_phone: string
           updated_at?: string
@@ -463,6 +471,10 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          home_lat?: number | null
+          home_lng?: number | null
+          home_radius_m?: number
+          last_prompt_at?: string | null
           notifications_enabled?: boolean
           owner_phone?: string
           updated_at?: string
@@ -513,6 +525,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      presence_pings: {
+        Row: {
+          created_at: string
+          id: string
+          lat: number
+          lng: number
+          observed_at: string
+          owner_phone: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          lat: number
+          lng: number
+          observed_at?: string
+          owner_phone: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          lat?: number
+          lng?: number
+          observed_at?: string
+          owner_phone?: string
+        }
+        Relationships: []
       }
       provenance_stages: {
         Row: {
