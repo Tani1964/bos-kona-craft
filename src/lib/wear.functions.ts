@@ -110,7 +110,10 @@ export const updateWearSettings = createServerFn({ method: "POST" })
     const { ensureSettings } = await import("@/lib/wear.server");
     await ensureSettings(phone);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const patch: Record<string, boolean> = {};
+    const patch: {
+      wear_intelligence?: boolean;
+      notifications_enabled?: boolean;
+    } = {};
     if (data.wear_intelligence !== undefined)
       patch.wear_intelligence = data.wear_intelligence;
     if (data.notifications_enabled !== undefined)
