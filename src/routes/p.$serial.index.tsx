@@ -239,6 +239,8 @@ function PassportPage() {
           </motion.div>
         </section>
 
+        {assetId && <PendingWearPrompt assetId={assetId} />}
+
         {assetId && isOwner && <CareWhisper assetId={assetId} />}
 
         <section className="mt-8 px-5">
