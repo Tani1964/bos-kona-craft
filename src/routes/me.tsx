@@ -4,6 +4,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { motion } from "framer-motion";
 import { ChevronRight, LogOut, Plus } from "lucide-react";
 import { listMyAssets, logoutOwner } from "@/lib/owner.functions";
+import { PendingWearPrompt } from "@/components/passport/PendingWearPrompt";
+import { WearSettings } from "@/components/passport/WearSettings";
 
 export const Route = createFileRoute("/me")({
   component: MePage,
@@ -59,6 +61,10 @@ function MePage() {
             Signed in as {phone}
           </p>
         )}
+
+        <div className="-mx-5">
+          <PendingWearPrompt />
+        </div>
 
         <section className="mt-6 space-y-2">
           {isLoading && (
@@ -120,6 +126,8 @@ function MePage() {
             </Link>
           )}
         </section>
+
+        {phone && <WearSettings />}
       </main>
     </div>
   );

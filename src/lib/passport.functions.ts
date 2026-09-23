@@ -71,6 +71,7 @@ export const getLiveSignals = createServerFn({ method: "GET" })
       supabaseAdmin
         .from("wear_events")
         .select("started_at, ended_at, effective_stress")
+        .eq("status", "confirmed")
         .eq("asset_id", data.asset_id)
         .gte("started_at", ninetyDaysAgo)
         .order("started_at", { ascending: false }),
@@ -133,6 +134,7 @@ export const getKfi = createServerFn({ method: "GET" })
       supabaseAdmin
         .from("wear_events")
         .select("started_at, ended_at, effective_stress")
+        .eq("status", "confirmed")
         .eq("asset_id", data.asset_id)
         .gte("started_at", since),
       supabaseAdmin
@@ -548,7 +550,7 @@ export const adminListWearEvents = createServerFn({ method: "GET" })
     const { data: rows, error } = await supabaseAdmin
       .from("wear_events")
       .select(
-        "id, asset_id, owner_phone, started_at, ended_at, transport_mode, rain_probability, effective_stress, weather_snapshot, assets(serial, model_name)",
+        "id, asset_id, owner_phone, started_at, ended_at, transport_mode, rain_probability, effective_stress, weather_snapshot, status, detected_via, notification_status, outing_key, assets(serial, model_name)",
       )
       .order("started_at", { ascending: false })
       .limit(data.limit);
