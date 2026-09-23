@@ -66,6 +66,7 @@ export const Route = createFileRoute("/api/public/hooks/generate-insights")({
         const { data: recentWears, error: wearErr } = await supabaseAdmin
           .from("wear_events")
           .select("asset_id, owner_phone")
+          .eq("status", "confirmed")
           .gte("started_at", since90);
         if (wearErr) {
           return new Response(
@@ -101,6 +102,7 @@ export const Route = createFileRoute("/api/public/hooks/generate-insights")({
           const { data: recent7 } = await supabaseAdmin
             .from("wear_events")
             .select("weather_snapshot")
+            .eq("status", "confirmed")
             .eq("asset_id", pair.asset_id)
             .eq("owner_phone", pair.owner_phone)
             .gte("started_at", since7);
@@ -133,6 +135,7 @@ export const Route = createFileRoute("/api/public/hooks/generate-insights")({
           const { data: wearsWindow } = await supabaseAdmin
             .from("wear_events")
             .select("id")
+            .eq("status", "confirmed")
             .eq("asset_id", pair.asset_id)
             .eq("owner_phone", pair.owner_phone)
             .gte("started_at", sinceOverdue);

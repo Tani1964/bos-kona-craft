@@ -22,6 +22,7 @@ import { ModuleCard } from "@/components/passport/ModuleCard";
 import { CareSheet } from "@/components/passport/CareSheet";
 import { OutTheDoorSheet } from "@/components/passport/OutTheDoorSheet";
 import { CareWhisper } from "@/components/passport/CareWhisper";
+import { PendingWearPrompt } from "@/components/passport/PendingWearPrompt";
 import { OwnerChip } from "@/components/passport/OwnerChip";
 import * as ownerFns from "@/lib/owner.functions";
 import { getLiveSignals, getKfi } from "@/lib/passport.functions";
@@ -238,6 +239,8 @@ function PassportPage() {
             </span>
           </motion.div>
         </section>
+
+        {assetId && <PendingWearPrompt assetId={assetId} />}
 
         {assetId && isOwner && <CareWhisper assetId={assetId} />}
 
