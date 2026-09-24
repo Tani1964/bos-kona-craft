@@ -22,6 +22,7 @@ import {
   adminListWearEvents,
   adminListCareInsights,
   adminListCronRuns,
+  adminListNotifications,
 } from "@/lib/passport.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
