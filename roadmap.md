@@ -13,4 +13,4 @@
 - [x] Admin observability: wear status + notification log
 - [x] Admin observability: wear status tiles + message log
 - [x] Morning rain warning in daily pass
-- [ ] Firebase Cloud Messaging connection (needs user to connect; fallback works without it)
+- [x] Firebase Cloud Messaging connection (needs user to connect; fallback works without it)
