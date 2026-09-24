@@ -1369,6 +1369,12 @@ function renderWearTable(data: any[]) {
                 <td className="px-3 py-2 font-mono text-[11px] text-muted-foreground">
                   {fmtDateTime(w.started_at)}
                 </td>
+                <td className="px-3 py-2 font-mono text-[10px] uppercase tracking-[0.15em]">
+                  <span className={(w.status ?? "confirmed") === "confirmed" ? "text-bronze" : "text-muted-foreground"}>
+                    {w.status ?? "confirmed"}
+                  </span>
+                  <span className="block text-[9px] text-muted-foreground">{w.detected_via ?? ""}</span>
+                </td>
                 <td className="px-3 py-2">
                   <p className="font-serif text-[13px] leading-tight">
                     {w.assets?.model_name ?? "—"}

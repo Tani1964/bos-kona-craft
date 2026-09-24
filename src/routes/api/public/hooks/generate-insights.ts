@@ -183,6 +183,53 @@ export const Route = createFileRoute("/api/public/hooks/generate-insights")({
           }
         }
 
+        // ── Morning rain pass: one message per owner per day, only when
+        // they've worn the piece recently and rain is likely near home.
+        let rainSent = 0;
+        try {
+          const { getWeather } = await import("@/lib/weather.server");
+          const { notifyOwner } = await import("@/lib/notify/dispatch.server");
+          const recentOwners = new Map<string, string>();
+          for (const p of pairs.values()) recentOwners.set(p.owner_phone, p.asset_id);
+          const today = new Date().toISOString().slice(0, 10);
+          for (const [phone, assetId] of recentOwners) {
+            const { data: s } = await supabaseAdmin
+              .from("owner_settings")
+              .select("home_lat, home_lng, notifications_enabled")
+              .eq("owner_phone", phone)
+              .maybeSingle();
+            if (!s || !s.notifications_enabled || s.home_lat == null || s.home_lng == null) continue;
+            const { data: already } = await supabaseAdmin
+              .from("notification_log")
+              .select("id")
+              .eq("owner_phone", phone)
+              .eq("kind", "rain_warning")
+              .gte("created_at", `${today}T00:00:00Z`)
+              .limit(1)
+              .maybeSingle();
+            if (already) continue;
+            const w = await getWeather({ lat: Number(s.home_lat), lng: Number(s.home_lng) });
+            if (w.rain_prob_3h < 0.6) continue;
+            const { data: asset } = await supabaseAdmin
+              .from("assets")
+              .select("model_name, serial")
+              .eq("id", assetId)
+              .maybeSingle();
+            const name = asset?.model_name ?? "your pair";
+            await notifyOwner(
+              { ownerPhone: phone, kind: "rain_warning", assetId },
+              {
+                title: "Rain expected",
+                body: `Rain is likely in the next few hours — maybe not the morning for the ${name}.`,
+                data: { path: asset?.serial ? `/p/${asset.serial}` : "/me" },
+              },
+            );
+            rainSent++;
+          }
+        } catch (e) {
+          console.error("[insights] rain pass failed", e);
+        }
+
         if (inserts.length) {
           const { error: insErr } = await supabaseAdmin
             .from("care_insights")
@@ -202,6 +249,7 @@ export const Route = createFileRoute("/api/public/hooks/generate-insights")({
             preventive: preventiveCount,
             maintenance_overdue: overdueCount,
             total_inserted: inserts.length,
+            rain_warnings: rainSent,
             ran_at: new Date().toISOString(),
           }),
           { status: 200, headers: { "Content-Type": "application/json" } },
