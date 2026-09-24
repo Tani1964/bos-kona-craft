@@ -576,6 +576,22 @@ export const adminListCareInsights = createServerFn({ method: "GET" })
     return rows ?? [];
   });
 
+export const adminListNotifications = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: any) =>
+    z.object({ limit: z.number().int().min(1).max(200).default(100) }).parse(d ?? {}),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { data: rows, error } = await supabaseAdmin
+      .from("notification_log")
+      .select("id, owner_phone, kind, provider, status, detail, created_at, assets(serial, model_name)")
+      .order("created_at", { ascending: false })
+      .limit(data.limit);
+    if (error) throw new Error(error.message);
+    return rows ?? [];
+  });
+
 export const adminListCronRuns = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: any) =>

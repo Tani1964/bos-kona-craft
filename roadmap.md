@@ -11,4 +11,6 @@
 - [x] Wear-dependent intelligence (KFI, Longevity, insights) counts confirmed only
 - [x] Owner controls: wear intelligence + notifications toggles
 - [x] Admin observability: wear status + notification log
+- [x] Admin observability: wear status tiles + message log
+- [x] Morning rain warning in daily pass
 - [ ] Firebase Cloud Messaging connection (needs user to connect; fallback works without it)

@@ -22,6 +22,7 @@ import {
   adminListWearEvents,
   adminListCareInsights,
   adminListCronRuns,
+  adminListNotifications,
 } from "@/lib/passport.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -1211,6 +1212,9 @@ function ObservabilityAdmin() {
           <TabsTrigger value="insights" className="gap-2">
             <Sparkles className="h-3.5 w-3.5" /> Care insights
           </TabsTrigger>
+          <TabsTrigger value="notify" className="gap-2">
+            <Activity className="h-3.5 w-3.5" /> Messages
+          </TabsTrigger>
           <TabsTrigger value="cron" className="gap-2">
             <Timer className="h-3.5 w-3.5" /> Cron runs
           </TabsTrigger>
@@ -1221,6 +1225,9 @@ function ObservabilityAdmin() {
         </TabsContent>
         <TabsContent value="insights">
           <CareInsightsFeed />
+        </TabsContent>
+        <TabsContent value="notify">
+          <NotificationFeed />
         </TabsContent>
         <TabsContent value="cron">
           <CronRunsFeed />
@@ -1256,11 +1263,78 @@ function WearEventsFeed() {
       </div>
     );
 
+  const counts = data.reduce((acc: Record<string, number>, w: any) => {
+    const k = w.status ?? "confirmed";
+    acc[k] = (acc[k] ?? 0) + 1;
+    return acc;
+  }, {});
+  const tiles: Array<[string, string]> = [
+    ["confirmed", "Confirmed"],
+    ["potential", "Awaiting answer"],
+    ["rejected", "Declined"],
+    ["dismissed", "Dismissed"],
+    ["expired", "Ignored / expired"],
+  ];
+
   return (
     <>
-      <StressStatsPanel events={data} />
+      <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-5">
+        {tiles.map(([k, label]) => (
+          <div key={k} className="rounded-xl border border-white/10 bg-white/5 p-3">
+            <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
+              {label}
+            </p>
+            <p className="mt-1 font-serif text-2xl">
+              {(counts[k] ?? 0) + (k === "potential" ? counts["awaiting_confirmation"] ?? 0 : 0)}
+            </p>
+          </div>
+        ))}
+      </div>
+      <StressStatsPanel events={data.filter((w: any) => (w.status ?? "confirmed") === "confirmed")} />
       {renderWearTable(data)}
     </>
+  );
+}
+
+function NotificationFeed() {
+  const { data, isLoading } = useQuery({
+    queryKey: ["admin", "notifications"],
+    queryFn: () => adminListNotifications({ data: { limit: 100 } }),
+  });
+  if (isLoading) return <p className="font-mono text-xs text-muted-foreground">Loading…</p>;
+  if (!data || data.length === 0)
+    return (
+      <div className="rounded-xl border border-dashed border-white/10 p-8 text-center font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+        No messages attempted yet
+      </div>
+    );
+  return (
+    <div className="overflow-hidden rounded-xl border border-white/10">
+      <table className="w-full text-left text-sm">
+        <thead className="bg-white/5 font-mono text-[9px] uppercase tracking-[0.25em] text-muted-foreground">
+          <tr>
+            <th className="px-3 py-2">When</th>
+            <th className="px-3 py-2">Kind</th>
+            <th className="px-3 py-2">Owner</th>
+            <th className="px-3 py-2">Asset</th>
+            <th className="px-3 py-2">Status</th>
+            <th className="px-3 py-2">Detail</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.map((n: any) => (
+            <tr key={n.id} className="border-t border-white/5">
+              <td className="px-3 py-2 font-mono text-[11px] text-muted-foreground">{fmtDateTime(n.created_at)}</td>
+              <td className="px-3 py-2 font-mono text-[10px] uppercase tracking-[0.15em]">{n.kind}</td>
+              <td className="px-3 py-2 font-mono text-[11px]">{maskPhone(n.owner_phone)}</td>
+              <td className="px-3 py-2 font-mono text-[10px] text-muted-foreground">{n.assets?.serial ?? "—"}</td>
+              <td className={`px-3 py-2 font-mono text-[10px] uppercase ${n.status === "sent" ? "text-bronze" : "text-muted-foreground"}`}>{n.status}</td>
+              <td className="max-w-xs truncate px-3 py-2 font-mono text-[10px] text-muted-foreground">{n.detail ?? ""}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
 
@@ -1272,6 +1346,7 @@ function renderWearTable(data: any[]) {
         <thead className="bg-white/5 font-mono text-[9px] uppercase tracking-[0.25em] text-muted-foreground">
           <tr>
             <th className="px-3 py-2">Started</th>
+            <th className="px-3 py-2">Status</th>
             <th className="px-3 py-2">Asset</th>
             <th className="px-3 py-2">Owner</th>
             <th className="px-3 py-2">Mode</th>
@@ -1293,6 +1368,12 @@ function renderWearTable(data: any[]) {
               <tr key={w.id} className="border-t border-white/5">
                 <td className="px-3 py-2 font-mono text-[11px] text-muted-foreground">
                   {fmtDateTime(w.started_at)}
+                </td>
+                <td className="px-3 py-2 font-mono text-[10px] uppercase tracking-[0.15em]">
+                  <span className={(w.status ?? "confirmed") === "confirmed" ? "text-bronze" : "text-muted-foreground"}>
+                    {w.status ?? "confirmed"}
+                  </span>
+                  <span className="block text-[9px] text-muted-foreground">{w.detected_via ?? ""}</span>
                 </td>
                 <td className="px-3 py-2">
                   <p className="font-serif text-[13px] leading-tight">
