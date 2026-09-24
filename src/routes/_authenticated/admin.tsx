@@ -1212,6 +1212,9 @@ function ObservabilityAdmin() {
           <TabsTrigger value="insights" className="gap-2">
             <Sparkles className="h-3.5 w-3.5" /> Care insights
           </TabsTrigger>
+          <TabsTrigger value="notify" className="gap-2">
+            <Activity className="h-3.5 w-3.5" /> Messages
+          </TabsTrigger>
           <TabsTrigger value="cron" className="gap-2">
             <Timer className="h-3.5 w-3.5" /> Cron runs
           </TabsTrigger>
@@ -1222,6 +1225,9 @@ function ObservabilityAdmin() {
         </TabsContent>
         <TabsContent value="insights">
           <CareInsightsFeed />
+        </TabsContent>
+        <TabsContent value="notify">
+          <NotificationFeed />
         </TabsContent>
         <TabsContent value="cron">
           <CronRunsFeed />
