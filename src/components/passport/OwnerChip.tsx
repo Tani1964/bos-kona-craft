@@ -13,6 +13,7 @@ export function OwnerChip() {
     queryFn: () => fetchCtx(),
     refetchOnWindowFocus: true,
   });
+  const phone = data?.phone ?? null;
   // Always-visible entry to the hub — signed in shows the masked phone,
   // signed out still gives a clear tap target to /me.
   if (!phone) {
