@@ -14,8 +14,21 @@ export function OwnerChip() {
     refetchOnWindowFocus: true,
   });
   const phone = data?.phone ?? null;
-
-  if (!phone) return null;
+  // Always-visible entry to the hub — signed in shows the masked phone,
+  // signed out still gives a clear tap target to /me.
+  if (!phone) {
+    return (
+      <Link
+        to="/me"
+        className="inline-flex items-center gap-1.5 rounded-full border border-bronze/30 bg-bronze/10 px-2.5 py-1 transition active:scale-95"
+      >
+        <User className="h-3 w-3 text-bronze" />
+        <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-bronze">
+          Hub
+        </span>
+      </Link>
+    );
+  }
   const masked = phone.replace(/.(?=.{4})/g, "•");
 
   return (

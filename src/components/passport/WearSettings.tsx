@@ -89,7 +89,9 @@ export function WearSettings() {
               ? "Messages are blocked for this site — allow notifications in your browser settings."
               : result.status === "unsupported"
                 ? "This browser can't receive messages. Install the passport to your home screen and try again."
-                : "Messaging isn't set up yet on our side — your passport still keeps everything in-app.",
+                : result.status === "not-configured"
+                  ? "Messaging isn't set up yet on our side — your passport still keeps everything in-app."
+                  : "Couldn't reach the message service. Check your connection and try again.",
       );
       qc.invalidateQueries({ queryKey: ["wearState"] });
     },
