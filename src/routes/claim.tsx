@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
-import { claimBySerial } from "@/lib/owner.functions";
+import { claimByPhone, claimBySerial } from "@/lib/owner.functions";
 import { markPassportClaimed } from "@/pwa/installState";
 
 const searchSchema = z.object({ serial: z.string().optional() });
@@ -18,7 +18,8 @@ export const Route = createFileRoute("/claim")({
 function ClaimPage() {
   const { serial: serialFromQuery } = Route.useSearch();
   const navigate = useNavigate();
-  const claim = useServerFn(claimBySerial);
+  const claimPhone = useServerFn(claimByPhone);
+  const claimSerial = useServerFn(claimBySerial);
   const [serial, setSerial] = useState(serialFromQuery ?? "");
   const [phone, setPhone] = useState("");
   const [busy, setBusy] = useState(false);
@@ -27,11 +28,17 @@ function ClaimPage() {
     e.preventDefault();
     setBusy(true);
     try {
-      const res = await claim({ data: { serial: serial.trim(), phone: phone.trim() } });
+      const trimmedSerial = serial.trim();
+      if (trimmedSerial) {
+        await claimSerial({
+          data: { serial: trimmedSerial, phone: phone.trim() },
+        });
+      } else {
+        await claimPhone({ data: { phone: phone.trim() } });
+      }
       markPassportClaimed();
       toast.success("Passport unlocked");
-      void res;
-      navigate({ to: "/" });
+      navigate({ to: "/me" });
     } catch (err: any) {
       toast.error(err?.message ?? "Could not open passport");
     } finally {
@@ -55,13 +62,14 @@ function ClaimPage() {
         </p>
 
         <form onSubmit={onSubmit} className="mt-6 space-y-3">
-          <input
-            required
-            placeholder="Serial (from your box)"
-            value={serial}
-            onChange={(e) => setSerial(e.target.value)}
-            className="w-full rounded-lg border border-white/10 bg-stone-900 px-3 py-3 text-sm outline-none focus:border-bronze/50"
-          />
+          {serialFromQuery && (
+            <input
+              placeholder="Serial (from your box)"
+              value={serial}
+              onChange={(e) => setSerial(e.target.value)}
+              className="w-full rounded-lg border border-white/10 bg-stone-900 px-3 py-3 text-sm outline-none focus:border-bronze/50"
+            />
+          )}
           <input
             required
             type="tel"
