@@ -183,6 +183,26 @@ export const adminListAssets = createServerFn({ method: "GET" })
     return data ?? [];
   });
 
+// Admin: send a real test push to an owner's registered devices.
+export const adminSendTestNotification = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { phone: string }) =>
+    z.object({ phone: z.string().min(6).max(32) }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { notifyOwner } = await import("@/lib/notify/dispatch.server");
+    const result = await notifyOwner(
+      { ownerPhone: data.phone, kind: "test" },
+      {
+        title: "Craft Passport",
+        body: "Messages are working — your passport can reach you now.",
+        data: { path: "/me" },
+      },
+    );
+    return result;
+  });
+
 export const createAsset = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { serial: string; model_name: string; store_product_id?: string }) =>
