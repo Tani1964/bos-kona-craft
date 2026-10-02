@@ -62,13 +62,14 @@ function ClaimPage() {
         </p>
 
         <form onSubmit={onSubmit} className="mt-6 space-y-3">
-          <input
-            required
-            placeholder="Serial (from your box)"
-            value={serial}
-            onChange={(e) => setSerial(e.target.value)}
-            className="w-full rounded-lg border border-white/10 bg-stone-900 px-3 py-3 text-sm outline-none focus:border-bronze/50"
-          />
+          {serialFromQuery && (
+            <input
+              placeholder="Serial (from your box)"
+              value={serial}
+              onChange={(e) => setSerial(e.target.value)}
+              className="w-full rounded-lg border border-white/10 bg-stone-900 px-3 py-3 text-sm outline-none focus:border-bronze/50"
+            />
+          )}
           <input
             required
             type="tel"
