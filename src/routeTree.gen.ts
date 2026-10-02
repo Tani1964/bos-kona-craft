@@ -9,48 +9,32 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as TapRouteImport } from './routes/tap'
-import { Route as SystemRouteImport } from './routes/system'
-import { Route as MeRouteImport } from './routes/me'
-import { Route as LoginRouteImport } from './routes/login'
-import { Route as ClaimRouteImport } from './routes/claim'
-import { Route as AtelierRouteImport } from './routes/atelier'
-import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
+import { Route as AtelierRouteImport } from './routes/atelier'
+import { Route as ClaimRouteImport } from './routes/claim'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as MeRouteImport } from './routes/me'
+import { Route as SystemRouteImport } from './routes/system'
+import { Route as TapRouteImport } from './routes/tap'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
-import { Route as PSerialIndexRouteImport } from './routes/p.$serial.index'
-import { Route as PSerialTimelineRouteImport } from './routes/p.$serial.timeline'
-import { Route as PSerialProvenanceRouteImport } from './routes/p.$serial.provenance'
-import { Route as PSerialOwnershipRouteImport } from './routes/p.$serial.ownership'
-import { Route as PSerialLongevityRouteImport } from './routes/p.$serial.longevity'
-import { Route as PSerialDocumentaryRouteImport } from './routes/p.$serial.documentary'
-import { Route as ApiPublicStorefrontWebhookRouteImport } from './routes/api/public/storefront-webhook'
 import { Route as ApiPublicNfcTapRouteImport } from './routes/api/public/nfc-tap'
+import { Route as ApiPublicStorefrontWebhookRouteImport } from './routes/api/public/storefront-webhook'
+import { Route as PSerialIndexRouteImport } from './routes/p.$serial.index'
+import { Route as PSerialDocumentaryRouteImport } from './routes/p.$serial.documentary'
+import { Route as PSerialLongevityRouteImport } from './routes/p.$serial.longevity'
+import { Route as PSerialOwnershipRouteImport } from './routes/p.$serial.ownership'
+import { Route as PSerialProvenanceRouteImport } from './routes/p.$serial.provenance'
+import { Route as PSerialTimelineRouteImport } from './routes/p.$serial.timeline'
 import { Route as ApiPublicHooksGenerateInsightsRouteImport } from './routes/api/public/hooks/generate-insights'
 
-const TapRoute = TapRouteImport.update({
-  id: '/tap',
-  path: '/tap',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SystemRoute = SystemRouteImport.update({
-  id: '/system',
-  path: '/system',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const MeRoute = MeRouteImport.update({
-  id: '/me',
-  path: '/me',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ClaimRoute = ClaimRouteImport.update({
-  id: '/claim',
-  path: '/claim',
+const AuthenticatedRoute = AuthenticatedRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AtelierRoute = AtelierRouteImport.update({
@@ -58,13 +42,29 @@ const AtelierRoute = AtelierRouteImport.update({
   path: '/atelier',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedRoute = AuthenticatedRouteImport.update({
-  id: '/_authenticated',
+const ClaimRoute = ClaimRouteImport.update({
+  id: '/claim',
+  path: '/claim',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MeRoute = MeRouteImport.update({
+  id: '/me',
+  path: '/me',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SystemRoute = SystemRouteImport.update({
+  id: '/system',
+  path: '/system',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TapRoute = TapRouteImport.update({
+  id: '/tap',
+  path: '/tap',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
@@ -72,34 +72,9 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const PSerialIndexRoute = PSerialIndexRouteImport.update({
-  id: '/p/$serial/',
-  path: '/p/$serial/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PSerialTimelineRoute = PSerialTimelineRouteImport.update({
-  id: '/p/$serial/timeline',
-  path: '/p/$serial/timeline',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PSerialProvenanceRoute = PSerialProvenanceRouteImport.update({
-  id: '/p/$serial/provenance',
-  path: '/p/$serial/provenance',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PSerialOwnershipRoute = PSerialOwnershipRouteImport.update({
-  id: '/p/$serial/ownership',
-  path: '/p/$serial/ownership',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PSerialLongevityRoute = PSerialLongevityRouteImport.update({
-  id: '/p/$serial/longevity',
-  path: '/p/$serial/longevity',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PSerialDocumentaryRoute = PSerialDocumentaryRouteImport.update({
-  id: '/p/$serial/documentary',
-  path: '/p/$serial/documentary',
+const ApiPublicNfcTapRoute = ApiPublicNfcTapRouteImport.update({
+  id: '/api/public/nfc-tap',
+  path: '/api/public/nfc-tap',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicStorefrontWebhookRoute =
@@ -108,9 +83,34 @@ const ApiPublicStorefrontWebhookRoute =
     path: '/api/public/storefront-webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiPublicNfcTapRoute = ApiPublicNfcTapRouteImport.update({
-  id: '/api/public/nfc-tap',
-  path: '/api/public/nfc-tap',
+const PSerialIndexRoute = PSerialIndexRouteImport.update({
+  id: '/p/$serial/',
+  path: '/p/$serial/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PSerialDocumentaryRoute = PSerialDocumentaryRouteImport.update({
+  id: '/p/$serial/documentary',
+  path: '/p/$serial/documentary',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PSerialLongevityRoute = PSerialLongevityRouteImport.update({
+  id: '/p/$serial/longevity',
+  path: '/p/$serial/longevity',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PSerialOwnershipRoute = PSerialOwnershipRouteImport.update({
+  id: '/p/$serial/ownership',
+  path: '/p/$serial/ownership',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PSerialProvenanceRoute = PSerialProvenanceRouteImport.update({
+  id: '/p/$serial/provenance',
+  path: '/p/$serial/provenance',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PSerialTimelineRoute = PSerialTimelineRouteImport.update({
+  id: '/p/$serial/timeline',
+  path: '/p/$serial/timeline',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicHooksGenerateInsightsRoute =
@@ -262,46 +262,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/tap': {
-      id: '/tap'
-      path: '/tap'
-      fullPath: '/tap'
-      preLoaderRoute: typeof TapRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/system': {
-      id: '/system'
-      path: '/system'
-      fullPath: '/system'
-      preLoaderRoute: typeof SystemRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/me': {
-      id: '/me'
-      path: '/me'
-      fullPath: '/me'
-      preLoaderRoute: typeof MeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/claim': {
-      id: '/claim'
-      path: '/claim'
-      fullPath: '/claim'
-      preLoaderRoute: typeof ClaimRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/atelier': {
-      id: '/atelier'
-      path: '/atelier'
-      fullPath: '/atelier'
-      preLoaderRoute: typeof AtelierRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -311,11 +276,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/atelier': {
+      id: '/atelier'
+      path: '/atelier'
+      fullPath: '/atelier'
+      preLoaderRoute: typeof AtelierRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/claim': {
+      id: '/claim'
+      path: '/claim'
+      fullPath: '/claim'
+      preLoaderRoute: typeof ClaimRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/me': {
+      id: '/me'
+      path: '/me'
+      fullPath: '/me'
+      preLoaderRoute: typeof MeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/system': {
+      id: '/system'
+      path: '/system'
+      fullPath: '/system'
+      preLoaderRoute: typeof SystemRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tap': {
+      id: '/tap'
+      path: '/tap'
+      fullPath: '/tap'
+      preLoaderRoute: typeof TapRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/admin': {
@@ -325,46 +325,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/p/$serial/': {
-      id: '/p/$serial/'
-      path: '/p/$serial'
-      fullPath: '/p/$serial/'
-      preLoaderRoute: typeof PSerialIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/p/$serial/timeline': {
-      id: '/p/$serial/timeline'
-      path: '/p/$serial/timeline'
-      fullPath: '/p/$serial/timeline'
-      preLoaderRoute: typeof PSerialTimelineRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/p/$serial/provenance': {
-      id: '/p/$serial/provenance'
-      path: '/p/$serial/provenance'
-      fullPath: '/p/$serial/provenance'
-      preLoaderRoute: typeof PSerialProvenanceRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/p/$serial/ownership': {
-      id: '/p/$serial/ownership'
-      path: '/p/$serial/ownership'
-      fullPath: '/p/$serial/ownership'
-      preLoaderRoute: typeof PSerialOwnershipRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/p/$serial/longevity': {
-      id: '/p/$serial/longevity'
-      path: '/p/$serial/longevity'
-      fullPath: '/p/$serial/longevity'
-      preLoaderRoute: typeof PSerialLongevityRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/p/$serial/documentary': {
-      id: '/p/$serial/documentary'
-      path: '/p/$serial/documentary'
-      fullPath: '/p/$serial/documentary'
-      preLoaderRoute: typeof PSerialDocumentaryRouteImport
+    '/api/public/nfc-tap': {
+      id: '/api/public/nfc-tap'
+      path: '/api/public/nfc-tap'
+      fullPath: '/api/public/nfc-tap'
+      preLoaderRoute: typeof ApiPublicNfcTapRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/storefront-webhook': {
@@ -374,11 +339,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicStorefrontWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/nfc-tap': {
-      id: '/api/public/nfc-tap'
-      path: '/api/public/nfc-tap'
-      fullPath: '/api/public/nfc-tap'
-      preLoaderRoute: typeof ApiPublicNfcTapRouteImport
+    '/p/$serial/': {
+      id: '/p/$serial/'
+      path: '/p/$serial'
+      fullPath: '/p/$serial/'
+      preLoaderRoute: typeof PSerialIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/p/$serial/documentary': {
+      id: '/p/$serial/documentary'
+      path: '/p/$serial/documentary'
+      fullPath: '/p/$serial/documentary'
+      preLoaderRoute: typeof PSerialDocumentaryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/p/$serial/longevity': {
+      id: '/p/$serial/longevity'
+      path: '/p/$serial/longevity'
+      fullPath: '/p/$serial/longevity'
+      preLoaderRoute: typeof PSerialLongevityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/p/$serial/ownership': {
+      id: '/p/$serial/ownership'
+      path: '/p/$serial/ownership'
+      fullPath: '/p/$serial/ownership'
+      preLoaderRoute: typeof PSerialOwnershipRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/p/$serial/provenance': {
+      id: '/p/$serial/provenance'
+      path: '/p/$serial/provenance'
+      fullPath: '/p/$serial/provenance'
+      preLoaderRoute: typeof PSerialProvenanceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/p/$serial/timeline': {
+      id: '/p/$serial/timeline'
+      path: '/p/$serial/timeline'
+      fullPath: '/p/$serial/timeline'
+      preLoaderRoute: typeof PSerialTimelineRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/hooks/generate-insights': {
