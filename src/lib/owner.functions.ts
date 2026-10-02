@@ -92,6 +92,43 @@ export const claimBySerial = createServerFn({ method: "POST" })
     return { ok: true, asset_id: asset.id, serial: asset.serial };
   });
 
+// Phone-only sign-in: the number must be the LATEST owner of at least one
+// asset. No serial required — the hub lists everything linked to the number.
+export const claimByPhone = createServerFn({ method: "POST" })
+  .inputValidator((d: { phone: string }) =>
+    z.object({ phone: PhoneSchema }).parse(d),
+  )
+  .handler(async ({ data }) => {
+    const phone = data.phone;
+
+    // Latest ownership record per asset; phone must hold at least one.
+    const { data: rows } = await supabaseAdmin
+      .from("ownership_records")
+      .select("asset_id, owner_phone, acquired_at")
+      .order("acquired_at", { ascending: false });
+
+    const seen = new Set<string>();
+    let owns = false;
+    for (const r of rows ?? []) {
+      if (seen.has(r.asset_id)) continue;
+      seen.add(r.asset_id);
+      if (r.owner_phone === phone) {
+        owns = true;
+        break;
+      }
+    }
+
+    if (!owns) {
+      throw new Error(
+        "No passport is registered to this number. Use the phone you gave the store at purchase.",
+      );
+    }
+
+    const session = await useSession<OwnerSession>(sessionConfig());
+    await session.update({ phone });
+    return { ok: true };
+  });
+
 export const logoutOwner = createServerFn({ method: "POST" }).handler(async () => {
   const session = await useSession<OwnerSession>(sessionConfig());
   await session.clear();
