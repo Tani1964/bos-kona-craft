@@ -6,6 +6,7 @@ import { ChevronRight, LogOut, Plus } from "lucide-react";
 import { listMyAssets, logoutOwner } from "@/lib/owner.functions";
 import { PendingWearPrompt } from "@/components/passport/PendingWearPrompt";
 import { WearSettings } from "@/components/passport/WearSettings";
+import { MyMessages } from "@/components/passport/MyMessages";
 
 export const Route = createFileRoute("/me")({
   component: MePage,
