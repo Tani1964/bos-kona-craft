@@ -128,6 +128,7 @@ function MePage() {
           )}
         </section>
 
+        {phone && <MyMessages />}
         {phone && <WearSettings />}
       </main>
     </div>
