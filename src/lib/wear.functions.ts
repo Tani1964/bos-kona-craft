@@ -33,6 +33,26 @@ export const getWearState = createServerFn({ method: "GET" }).handler(
   },
 );
 
+/** The owner's own recent messages — what the passport sent and whether it arrived. */
+export const listMyNotifications = createServerFn({ method: "GET" }).handler(
+  async () => {
+    const { getOwnerPhone } = await import("@/lib/owner-session.server");
+    const phone = await getOwnerPhone();
+    if (!phone) return [];
+    const { supabaseAdmin } = await import(
+      "@/integrations/supabase/client.server"
+    );
+    const { data, error } = await supabaseAdmin
+      .from("notification_log")
+      .select("id, kind, status, created_at, assets(serial, model_name)")
+      .eq("owner_phone", phone)
+      .order("created_at", { ascending: false })
+      .limit(20);
+    if (error) throw new Error(error.message);
+    return data ?? [];
+  },
+);
+
 /** Called at app open when location is already permitted. Never prompts. */
 export const observeMyPresence = createServerFn({ method: "POST" })
   .inputValidator((d: { lat: number; lng: number }) =>
