@@ -6,6 +6,7 @@
 // Server-only.
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { getPushProvider, type PushMessage } from "./provider.server";
+import type { NotificationKind } from "./types";
 
 export type DispatchOutcome =
   | "sent"
@@ -16,7 +17,8 @@ export type DispatchOutcome =
 
 export type DispatchContext = {
   ownerPhone: string;
-  kind: string;
+  /** Channel — see NotificationType. Sent to the device as `notification_type`. */
+  kind: NotificationKind;
   assetId?: string | null;
   wearEventId?: string | null;
 };
@@ -72,7 +74,10 @@ export async function notifyOwner(
     return { outcome: "no_devices", provider: provider.id };
   }
 
-  const results = await provider.send(tokens, message);
+  const results = await provider.send(tokens, {
+    ...message,
+    data: { ...(message.data ?? {}), notification_type: ctx.kind },
+  });
 
   const stale = results.filter((r) => r.outcome === "stale").map((r) => r.token);
   if (stale.length > 0) {
