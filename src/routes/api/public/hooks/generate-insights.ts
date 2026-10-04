@@ -203,7 +203,7 @@ export const Route = createFileRoute("/api/public/hooks/generate-insights")({
               .from("notification_log")
               .select("id")
               .eq("owner_phone", phone)
-              .eq("kind", "rain_warning")
+              .in("kind", ["rain_warning", "weather_advisory"])
               .gte("created_at", `${today}T00:00:00Z`)
               .limit(1)
               .maybeSingle();
@@ -217,7 +217,7 @@ export const Route = createFileRoute("/api/public/hooks/generate-insights")({
               .maybeSingle();
             const name = asset?.model_name ?? "your pair";
             await notifyOwner(
-              { ownerPhone: phone, kind: "rain_warning", assetId },
+              { ownerPhone: phone, kind: "weather_advisory", assetId },
               {
                 title: "Rain expected",
                 body: `Rain is likely in the next few hours — maybe not the morning for the ${name}.`,

@@ -232,59 +232,17 @@ export async function filePotentialOuting(
   const pendingCount = pending?.length ?? 0;
   if (pendingCount === 0) return { state: "away_existing" };
 
-  // Notify at most once per cooldown; fallback in-app prompt always remains.
-  const lastPrompt = settings.last_prompt_at
-    ? new Date(settings.last_prompt_at).getTime()
-    : 0;
-  if (Date.now() - lastPrompt < PROMPT_COOLDOWN_MS) {
-    return { state: "away_recorded", pending_count: pendingCount };
-  }
-
-  const single = pendingCount === 1 ? (pending?.[0] as any) : null;
-  const pairName = single?.assets?.model_name as string | undefined;
-  const result = await notifyOwner(
-    {
-      ownerPhone: phone,
-      kind: "wear_prompt",
-      assetId: single?.asset_id ?? null,
-      wearEventId: single?.id ?? null,
-    },
-    {
-      title: "Heading out?",
-      body: pairName
-        ? `Wearing your ${pairName} today?`
-        : "Wearing one of your Kọ́nà pairs today?",
-      data: { path: "/me?pending=1", kind: "wear_prompt", outing: outingKey },
-    },
-  );
-
-  await supabaseAdmin
-    .from("owner_settings")
-    .update({ last_prompt_at: new Date().toISOString() })
-    .eq("owner_phone", phone);
-
-  const status =
-    result.outcome === "sent"
-      ? "sent"
-      : result.outcome === "failed"
-        ? "failed"
-        : "unavailable";
+  // Live detection never pushes: the owner is in the app right now, so the
+  // in-app card asks. Push for wear/care is reserved for the 7-day fallback.
+  void settings;
   await supabaseAdmin
     .from("wear_events")
-    .update({
-      notification_status: status,
-      notification_provider: result.provider,
-      status: "awaiting_confirmation",
-    })
+    .update({ status: "awaiting_confirmation", notification_status: "none" })
     .eq("owner_phone", phone)
     .eq("outing_key", outingKey)
     .in("status", ["potential", "awaiting_confirmation"]);
 
-  return {
-    state: "away_recorded",
-    notification: result.outcome,
-    pending_count: pendingCount,
-  };
+  return { state: "away_recorded", pending_count: pendingCount };
 }
 
 /** Pending prompts the owner still has to answer (fallback experience). */
