@@ -242,9 +242,19 @@ export const Route = createFileRoute("/api/public/hooks/generate-insights")({
           }
         }
 
+        // ── 7-day wear/care fallback pass (at most one per pair per week).
+        let fallback: Record<string, number> = {};
+        try {
+          const { runFallbackPass } = await import("@/lib/fallback.server");
+          fallback = await runFallbackPass();
+        } catch (e) {
+          console.error("[insights] fallback pass failed", e);
+        }
+
         return new Response(
           JSON.stringify({
             ok: true,
+            fallback,
             pairs_scanned: pairs.size,
             preventive: preventiveCount,
             maintenance_overdue: overdueCount,
