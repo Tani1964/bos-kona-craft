@@ -7,6 +7,7 @@ import { BellRing, Sparkles } from "lucide-react";
 import {
   updateWearSettings,
   registerPushDevice,
+  sendMyTestFallback,
 } from "@/lib/wear.functions";
 import { useWearState } from "@/components/passport/PendingWearPrompt";
 import { enablePush } from "@/lib/push/enablePush";
@@ -60,6 +61,17 @@ export function WearSettings() {
   const save = useServerFn(updateWearSettings);
   const register = useServerFn(registerPushDevice);
   const [note, setNote] = useState<string | null>(null);
+  const testFallback = useServerFn(sendMyTestFallback);
+  const mTest = useMutation({
+    mutationFn: (c: 2 | 3 | 4) => testFallback({ data: { case: c } }),
+    onSuccess: (r) =>
+      setNote(
+        r.outcome === "sent"
+          ? "Test sent — close the app and wait for it. Tapping it opens the matching check-in."
+          : `Not delivered (${r.outcome}). Allow messages on this device first.`,
+      ),
+    onError: () => setNote("Couldn't send the test."),
+  });
 
   const mSave = useMutation({
     mutationFn: (patch: {
@@ -133,6 +145,28 @@ export function WearSettings() {
           {mEnable.isPending ? "Setting up…" : "Allow messages on this device"}
         </button>
       )}
+
+      <div className="mt-6 rounded-xl border border-dashed border-white/15 p-4">
+        <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+          Developer · Test 7-day fallback
+        </p>
+        <div className="mt-3 grid grid-cols-3 gap-2">
+          {([
+            [2, "Missing care"],
+            [3, "Missing wear"],
+            [4, "Missing both"],
+          ] as const).map(([c, label]) => (
+            <button
+              key={c}
+              disabled={mTest.isPending}
+              onClick={() => mTest.mutate(c)}
+              className="h-10 rounded-lg border border-white/15 bg-white/5 text-xs text-foreground active:scale-[0.97] disabled:opacity-50"
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {note && (
         <p className="mt-2 font-mono text-[10px] leading-relaxed text-muted-foreground">

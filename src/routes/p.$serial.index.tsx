@@ -23,6 +23,8 @@ import { CareSheet } from "@/components/passport/CareSheet";
 import { OutTheDoorSheet } from "@/components/passport/OutTheDoorSheet";
 import { CareWhisper } from "@/components/passport/CareWhisper";
 import { PendingWearPrompt } from "@/components/passport/PendingWearPrompt";
+import { CatchUpSheet } from "@/components/passport/CatchUpSheet";
+import type { CatchUpMode } from "@/lib/fallback";
 import { OwnerChip } from "@/components/passport/OwnerChip";
 import * as ownerFns from "@/lib/owner.functions";
 import { getLiveSignals, getKfi } from "@/lib/passport.functions";
@@ -64,6 +66,11 @@ export const Route = createFileRoute("/p/$serial/")({
     if (!data) throw notFound();
     return data;
   },
+  validateSearch: (s: Record<string, unknown>): { catchup?: CatchUpMode } => ({
+    catchup: ["care", "wear", "combined"].includes(s.catchup as string)
+      ? (s.catchup as CatchUpMode)
+      : undefined,
+  }),
   component: PassportPage,
   head: ({ params }) => ({
     meta: [
@@ -88,6 +95,9 @@ function PassportPage() {
   const { serial: serialParam } = Route.useParams();
   const [careOpen, setCareOpen] = useState(false);
   const [outOpen, setOutOpen] = useState(false);
+  const { catchup } = Route.useSearch();
+  const navigateSelf = Route.useNavigate();
+  const closeCatchUp = () => navigateSelf({ search: {}, replace: true });
   const { data: passport } = useSuspenseQuery(passportQueryOptions(serialParam));
   const t = (passport?.asset_telemetry as any) ?? null;
   const assetIdEarly = (passport as any)?.id as string | undefined;
@@ -288,6 +298,14 @@ function PassportPage() {
           </motion.div>
 
           <motion.p
+            {...fade(0.7)}
+            className="mt-4 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-center font-mono text-[10px] leading-relaxed text-muted-foreground"
+          >
+            Pro Tip: Open your Passport when stepping out for automatic wear
+            detection, and tap your Care Kit NFC chip whenever cleaning.
+          </motion.p>
+
+          <motion.p
             {...fade(0.75)}
             className="mt-4 text-center font-mono text-[10.5px] uppercase tracking-[0.2em] text-muted-foreground"
           >
@@ -381,6 +399,14 @@ function PassportPage() {
         </div>
       </motion.footer>
 
+      {assetId && (
+        <CatchUpSheet
+          mode={catchup ?? null}
+          assetId={assetId}
+          shoe={modelName}
+          onClose={closeCatchUp}
+        />
+      )}
       <CareSheet open={careOpen} onClose={() => setCareOpen(false)} />
       {assetId && (
         <OutTheDoorSheet

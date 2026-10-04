@@ -180,3 +180,37 @@ export const registerPushDevice = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+/** Weekly catch-up answers (retroactive wears and/or owner-reported care). */
+export const submitMyCatchUp = createServerFn({ method: "POST" })
+  .inputValidator((d: { asset_id: string; wear_days?: number | null; care?: boolean | null }) =>
+    z
+      .object({
+        asset_id: z.string().uuid(),
+        wear_days: z.number().int().min(0).max(3).nullable().optional(),
+        care: z.boolean().nullable().optional(),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data }) => {
+    const { requireOwnership } = await import("@/lib/owner-session.server");
+    const phone = await requireOwnership(data.asset_id);
+    const { submitCatchUp } = await import("@/lib/fallback.server");
+    return submitCatchUp(data.asset_id, phone, data.wear_days ?? null, data.care ?? null);
+  });
+
+/** Temporary developer hook: push a 7-day fallback case to this owner's phone. */
+export const sendMyTestFallback = createServerFn({ method: "POST" })
+  .inputValidator((d: { case: number }) =>
+    z.object({ case: z.union([z.literal(2), z.literal(3), z.literal(4)]) }).parse(d),
+  )
+  .handler(async ({ data }) => {
+    const { getOwnerPhone, listOwnedAssetIds } = await import("@/lib/owner-session.server");
+    const phone = await getOwnerPhone();
+    if (!phone) throw new Error("Not signed in");
+    const ids = await listOwnedAssetIds(phone);
+    if (ids.length === 0) throw new Error("No passports linked");
+    const { sendTestFallback } = await import("@/lib/fallback.server");
+    const r = await sendTestFallback(ids[0], phone, data.case as 2 | 3 | 4);
+    return { outcome: r.outcome };
+  });

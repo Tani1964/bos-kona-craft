@@ -9,6 +9,12 @@ const KIND_META: Record<string, { label: string; icon: React.ReactNode }> = {
   test: { label: "Test message", icon: <BellRing className="h-3.5 w-3.5" /> },
   wear_prompt: { label: "Wearing them today?", icon: <Footprints className="h-3.5 w-3.5" /> },
   rain_warning: { label: "Weather warning", icon: <CloudRain className="h-3.5 w-3.5" /> },
+  wear_nudge: { label: "Weekly wear check", icon: <Footprints className="h-3.5 w-3.5" /> },
+  care_nudge: { label: "Care check", icon: <Sparkles className="h-3.5 w-3.5" /> },
+  weekly_combined_nudge: { label: "Weekly check-in", icon: <MessageCircle className="h-3.5 w-3.5" /> },
+  weather_advisory: { label: "Weather advisory", icon: <CloudRain className="h-3.5 w-3.5" /> },
+  kfi_milestone: { label: "KFI™ milestone", icon: <Sparkles className="h-3.5 w-3.5" /> },
+  system_message: { label: "From Bos' Kọ́nà", icon: <MessageCircle className="h-3.5 w-3.5" /> },
   care_whisper: { label: "Care whisper", icon: <Sparkles className="h-3.5 w-3.5" /> },
 };
 
