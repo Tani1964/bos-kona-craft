@@ -132,10 +132,10 @@ export function PendingWearPrompt({ assetId }: { assetId?: string }) {
           </div>
 
           <p className="mt-2 font-serif text-xl leading-snug">
-            We noticed you were out.{" "}
+            You seem to be out.{" "}
             {p.assets?.model_name
-              ? `Wearing the ${p.assets.model_name}?`
-              : "Wearing this pair?"}
+              ? `Wearing the ${p.assets.model_name} today?`
+              : "Wearing this pair today?"}
           </p>
           <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
             Nothing is recorded until you say so
@@ -147,7 +147,7 @@ export function PendingWearPrompt({ assetId }: { assetId?: string }) {
               onClick={() => mConfirm.mutate(p.id)}
               className="h-11 flex-1 rounded-lg bg-bronze text-sm font-bold text-stone-950 active:scale-[0.98] disabled:opacity-60"
             >
-              Yes, worn today
+              Yes, Wearing
             </button>
             <button
               disabled={mDecline.isPending}
@@ -156,7 +156,7 @@ export function PendingWearPrompt({ assetId }: { assetId?: string }) {
               }
               className="h-11 flex-1 rounded-lg border border-white/15 bg-white/5 text-sm text-foreground active:scale-[0.98]"
             >
-              {multi ? "Not this pair" : "Not today"}
+              {multi ? "Not this pair" : "No, Not Today"}
             </button>
           </div>
         </motion.section>
