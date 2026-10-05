@@ -1,0 +1,17 @@
+DROP POLICY IF EXISTS "Public read assets" ON public.assets;
+DROP POLICY IF EXISTS "Public read telemetry" ON public.asset_telemetry;
+DROP POLICY IF EXISTS "Public read module_overrides" ON public.module_overrides;
+DROP POLICY IF EXISTS "Public read makers" ON public.makers;
+DROP POLICY IF EXISTS "Public read provenance_stages" ON public.provenance_stages;
+DROP POLICY IF EXISTS "Public read documentary" ON public.documentary;
+DROP POLICY IF EXISTS "Public read atelier" ON public.atelier;
+DROP POLICY IF EXISTS "Public read care_tools" ON public.care_tools;
+CREATE POLICY "Admin read assets" ON public.assets FOR SELECT TO authenticated USING (public.has_role(auth.uid(),'admin'));
+CREATE POLICY "Admin read telemetry" ON public.asset_telemetry FOR SELECT TO authenticated USING (public.has_role(auth.uid(),'admin'));
+CREATE POLICY "Admin read module_overrides" ON public.module_overrides FOR SELECT TO authenticated USING (public.has_role(auth.uid(),'admin'));
+CREATE POLICY "Admin read makers" ON public.makers FOR SELECT TO authenticated USING (public.has_role(auth.uid(),'admin'));
+CREATE POLICY "Admin read provenance_stages" ON public.provenance_stages FOR SELECT TO authenticated USING (public.has_role(auth.uid(),'admin'));
+CREATE POLICY "Admin read documentary" ON public.documentary FOR SELECT TO authenticated USING (public.has_role(auth.uid(),'admin'));
+CREATE POLICY "Admin read atelier" ON public.atelier FOR SELECT TO authenticated USING (public.has_role(auth.uid(),'admin'));
+CREATE POLICY "Admin read care_tools" ON public.care_tools FOR SELECT TO authenticated USING (public.has_role(auth.uid(),'admin'));
+DROP POLICY IF EXISTS "Public read passport-media object" ON storage.objects;
