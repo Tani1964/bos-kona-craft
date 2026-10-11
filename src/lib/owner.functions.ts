@@ -189,30 +189,51 @@ export const getOpenWearEvent = createServerFn({ method: "GET" })
     z.object({ asset_id: z.string().uuid() }).parse(d),
   )
   .handler(async ({ data }) => {
-    const session = await useSession<OwnerSession>(sessionConfig());
-    const phone = session.data.phone;
-    if (!phone) return { owner: false as const, event: null };
-    // verify still latest owner
-    const { data: latest } = await supabaseAdmin
-      .from("ownership_records")
-      .select("owner_phone")
-      .eq("asset_id", data.asset_id)
-      .order("acquired_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    if (!latest || latest.owner_phone !== phone) {
+    try {
+      const session = await useSession<OwnerSession>(sessionConfig());
+      const phone = session.data.phone;
+      if (!phone) return { owner: false as const, event: null };
+
+      // This read only controls an optional UI state; if the ownership check
+      // cannot complete, fail closed instead of breaking the passport page.
+      const { data: latest, error: ownerError } = await supabaseAdmin
+        .from("ownership_records")
+        .select("owner_phone")
+        .eq("asset_id", data.asset_id)
+        .order("acquired_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (ownerError) {
+        console.error("[owner] open wear ownership lookup failed", ownerError.message);
+        return { owner: false as const, event: null };
+      }
+      if (!latest || latest.owner_phone !== phone) {
+        return { owner: false as const, event: null };
+      }
+
+      const { data: ev, error: eventError } = await supabaseAdmin
+        .from("wear_events")
+        .select("id, started_at, transport_mode, rain_probability, weather_snapshot")
+        .eq("asset_id", data.asset_id)
+        .eq("owner_phone", phone)
+        .is("ended_at", null)
+        .order("started_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (eventError) {
+        console.error("[owner] open wear event lookup failed", eventError.message);
+        return { owner: false as const, event: null };
+      }
+      return { owner: true as const, event: ev ?? null };
+    } catch (error) {
+      // A stale or unreadable owner cookie should behave like a signed-out
+      // visitor for this read-only check, not become a passport-wide 500.
+      console.error(
+        "[owner] open wear state unavailable",
+        error instanceof Error ? error.name : "Unknown error",
+      );
       return { owner: false as const, event: null };
     }
-    const { data: ev } = await supabaseAdmin
-      .from("wear_events")
-      .select("id, started_at, transport_mode, rain_probability, weather_snapshot")
-      .eq("asset_id", data.asset_id)
-      .eq("owner_phone", phone)
-      .is("ended_at", null)
-      .order("started_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    return { owner: true as const, event: ev ?? null };
   });
 
 // ── Wear events ───────────────────────────────────────────────

@@ -26,7 +26,7 @@ import { PendingWearPrompt } from "@/components/passport/PendingWearPrompt";
 import { CatchUpSheet } from "@/components/passport/CatchUpSheet";
 import type { CatchUpMode } from "@/lib/fallback";
 import { OwnerChip } from "@/components/passport/OwnerChip";
-import * as ownerFns from "@/lib/owner.functions";
+import { getOpenWearEvent } from "@/lib/owner.functions";
 import { getLiveSignals, getKfi } from "@/lib/passport.functions";
 import { resolveFeed, type ThumbnailStyle } from "@/lib/passport/ecosystem";
 import { getWatchedFilms } from "@/lib/passport/watched";
@@ -169,7 +169,7 @@ function PassportPage() {
   const storeProductId = (passport as any)?.store_product_id as string | null | undefined;
   const assetId = (passport as any)?.id as string | undefined;
 
-  const fetchOpenEvent = useServerFn(ownerFns.getOpenWearEvent);
+  const fetchOpenEvent = useServerFn(getOpenWearEvent);
   const { data: openCtx } = useQuery({
     queryKey: ["openWearEvent", assetId],
     queryFn: () =>
