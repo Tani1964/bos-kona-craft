@@ -62,6 +62,15 @@ function fcmProvider(): PushProvider {
                 token,
                 notification: { title: message.title, body: message.body },
                 ...(message.data ? { data: message.data } : {}),
+                ...(message.data?.path
+                  ? {
+                      webpush: {
+                        fcm_options: {
+                          link: `https://bos-kona-craft.lovable.app${message.data.path}`,
+                        },
+                      },
+                    }
+                  : {}),
               },
             }),
           });
