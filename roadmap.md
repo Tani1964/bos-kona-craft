@@ -14,5 +14,3 @@
 - [x] Admin observability: wear status tiles + message log
 - [x] Morning rain warning in daily pass
 - [x] Firebase Cloud Messaging connection (needs user to connect; fallback works without it)
-## Limited-edition store connection
-- [ ] Define a signed, limited-edition-only webhook contract and developer handoff guide
